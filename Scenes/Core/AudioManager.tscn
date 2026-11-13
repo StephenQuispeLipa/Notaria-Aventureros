@@ -1,12 +1,13 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene format=3 uid="uid://y04e730l4ppn"]
 
-[ext_resource type="Script" path="res://Scripts/Core/audio_manager.gd" id="1_script"]
-[ext_resource type="AudioStream" path="res://Assets/Audio/BGM/main_theme.mp3" id="2_bgm"]
+[ext_resource type="Script" uid="uid://bd5mjkn2tdibk" path="res://Scripts/Core/audio_manager.gd" id="1_script"]
+[ext_resource type="AudioStream" uid="uid://bcnblhnjbtfyd" path="res://Assets/Audio/BGM/main_theme.mp3" id="2_bgm"]
 
-[node name="AudioManager" type="Node"]
+[node name="AudioManager" type="Node" unique_id=2035804663]
 script = ExtResource("1_script")
 
-[node name="BGMPlayer" type="AudioStreamPlayer" parent="."]
+[node name="BGMPlayer" type="AudioStreamPlayer" parent="." unique_id=1954524334]
+process_mode = 3
 stream = ExtResource("2_bgm")
 autoplay = true
 bus = &"BGM"

@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://cbwyutecaa3vf"]
+
+[ext_resource type="PackedScene" uid="uid://d10u421ope070" path="res://Scenes/Menus/PauseMenu.tscn" id="1_y8ntc"]
+
+[node name="DeskView" type="Node2D" unique_id=804527178]
+
+[node name="Label" type="Label" parent="." unique_id=2026975617]
+offset_left = 244.0
+offset_top = 176.0
+offset_right = 303.0
+offset_bottom = 199.0
+text = "aaaaaa"
+
+[node name="PauseMenu" parent="." unique_id=1023493791 instance=ExtResource("1_y8ntc")]

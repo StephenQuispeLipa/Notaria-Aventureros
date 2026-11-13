@@ -130,6 +130,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _on_jugar_pressed() -> void:
 	if scroll_panel.visible:
 		close_parchment()
+	get_tree().change_scene_to_file("res://Scenes/Desk/Desk_View.tscn")
 
 func _on_continuar_pressed() -> void:
 	if scroll_panel.visible:
