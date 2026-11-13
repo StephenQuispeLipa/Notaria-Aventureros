@@ -1,0 +1,377 @@
+[gd_scene load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://Scripts/Menus/options_menu.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://Assets/Art/UI/options_scroll.png" id="2_scroll"]
+[ext_resource type="Texture2D" path="res://Assets/Art/UI/menu_sign.png" id="3_sign"]
+[ext_resource type="FontFile" path="res://Assets/Art/Fonts/monogram-extended.ttf" id="4_mono"]
+[ext_resource type="FontFile" path="res://Assets/Art/Fonts/Silver.ttf" id="5_silver"]
+[ext_resource type="AudioStream" path="res://Assets/Audio/SFX/papel-open.wav" id="6_audio_open"]
+[ext_resource type="AudioStream" path="res://Assets/Audio/SFX/papel-close.wav" id="7_audio_close"]
+
+[node name="OptionsMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="BackgroundDim" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.4)
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+
+[node name="LeftSection" type="CenterContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="ScrollPanel" type="TextureRect" parent="MarginContainer/HBoxContainer/LeftSection"]
+visible = false
+texture_filter = 1
+custom_minimum_size = Vector2(270, 250)
+layout_mode = 2
+texture = ExtResource("2_scroll")
+expand_mode = 1
+stretch_mode = 0
+
+[node name="ScrollMargin" type="MarginContainer" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 58
+theme_override_constants/margin_top = 32
+theme_override_constants/margin_right = 58
+theme_override_constants/margin_bottom = 32
+
+[node name="ContentContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin"]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.14, 0.16, 1)
+theme_override_fonts/font = ExtResource("4_mono")
+theme_override_font_sizes/font_size = 16
+text = "AJUSTES"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer"]
+custom_minimum_size = Vector2(0, 2)
+layout_mode = 2
+
+[node name="OptionsList" type="VBoxContainer" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="MasterContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/MasterContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/MasterContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
+theme_override_fonts/font = ExtResource("5_silver")
+theme_override_font_sizes/font_size = 16
+text = "Volumen General"
+
+[node name="ValMaster" type="Label" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/MasterContainer/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.25, 0.28, 1)
+theme_override_fonts/font = ExtResource("5_silver")
+theme_override_font_sizes/font_size = 16
+text = "100%"
+
+[node name="SliderMaster" type="HSlider" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/MasterContainer"]
+layout_mode = 2
+focus_mode = 0
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="BGMContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/BGMContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/BGMContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
+theme_override_fonts/font = ExtResource("5_silver")
+theme_override_font_sizes/font_size = 16
+text = "Música"
+
+[node name="ValBGM" type="Label" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/BGMContainer/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.25, 0.28, 1)
+theme_override_fonts/font = ExtResource("5_silver")
+theme_override_font_sizes/font_size = 16
+text = "100%"
+
+[node name="SliderBGM" type="HSlider" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/BGMContainer"]
+layout_mode = 2
+focus_mode = 0
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="SFXContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Header" type="HBoxContainer" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/SFXContainer"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/SFXContainer/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
+theme_override_fonts/font = ExtResource("5_silver")
+theme_override_font_sizes/font_size = 16
+text = "Efectos"
+
+[node name="ValSFX" type="Label" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/SFXContainer/Header"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.25, 0.28, 1)
+theme_override_fonts/font = ExtResource("5_silver")
+theme_override_font_sizes/font_size = 16
+text = "100%"
+
+[node name="SliderSFX" type="HSlider" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/SFXContainer"]
+layout_mode = 2
+focus_mode = 0
+max_value = 1.0
+step = 0.05
+value = 1.0
+
+[node name="FullscreenContainer" type="HBoxContainer" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList"]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/FullscreenContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
+theme_override_fonts/font = ExtResource("5_silver")
+theme_override_font_sizes/font_size = 16
+text = "Pantalla Completa"
+
+[node name="BtnFullscreen" type="Button" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/FullscreenContainer"]
+layout_mode = 2
+focus_mode = 0
+flat = true
+theme_override_colors/font_color = Color(0.4, 0.25, 0.28, 1)
+theme_override_colors/font_hover_color = Color(0.65, 0.35, 0.4, 1)
+theme_override_fonts/font = ExtResource("5_silver")
+theme_override_font_sizes/font_size = 16
+text = "[ NO ]"
+
+[node name="CreditsList" type="VBoxContainer" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer"]
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Credit1" type="Label" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/CreditsList"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.14, 0.16, 1)
+theme_override_fonts/font = ExtResource("5_silver")
+theme_override_font_sizes/font_size = 16
+text = "Notaría de Aventureros"
+horizontal_alignment = 1
+
+[node name="Credit2" type="Label" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/CreditsList"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.22, 0.25, 1)
+theme_override_fonts/font = ExtResource("5_silver")
+theme_override_font_sizes/font_size = 16
+text = "Desarrollo y Código"
+horizontal_alignment = 1
+
+[node name="Credit3" type="Label" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/CreditsList"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.22, 0.25, 1)
+theme_override_fonts/font = ExtResource("5_silver")
+theme_override_font_sizes/font_size = 16
+text = "Arte y Sonido"
+horizontal_alignment = 1
+
+[node name="Credit4" type="Label" parent="MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/CreditsList"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.14, 0.16, 1)
+theme_override_fonts/font = ExtResource("5_silver")
+theme_override_font_sizes/font_size = 16
+text = "¡Gracias por jugar!"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RightSection" type="CenterContainer" parent="MarginContainer/HBoxContainer"]
+layout_mode = 2
+
+[node name="SignsContainer" type="VBoxContainer" parent="MarginContainer/HBoxContainer/RightSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="SignJugar" type="TextureButton" parent="MarginContainer/HBoxContainer/RightSection/SignsContainer"]
+texture_filter = 1
+custom_minimum_size = Vector2(160, 32)
+layout_mode = 2
+texture_normal = ExtResource("3_sign")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/RightSection/SignsContainer/SignJugar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.92, 0.86, 0.74, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.08, 0.16, 0.8)
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("4_mono")
+theme_override_font_sizes/font_size = 16
+text = "JUGAR"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SignContinuar" type="TextureButton" parent="MarginContainer/HBoxContainer/RightSection/SignsContainer"]
+texture_filter = 1
+custom_minimum_size = Vector2(160, 32)
+layout_mode = 2
+texture_normal = ExtResource("3_sign")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/RightSection/SignsContainer/SignContinuar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.92, 0.86, 0.74, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.08, 0.16, 0.8)
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("4_mono")
+theme_override_font_sizes/font_size = 16
+text = "CONTINUAR"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SignOpciones" type="TextureButton" parent="MarginContainer/HBoxContainer/RightSection/SignsContainer"]
+texture_filter = 1
+custom_minimum_size = Vector2(160, 32)
+layout_mode = 2
+texture_normal = ExtResource("3_sign")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/RightSection/SignsContainer/SignOpciones"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.92, 0.86, 0.74, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.08, 0.16, 0.8)
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("4_mono")
+theme_override_font_sizes/font_size = 16
+text = "OPCIONES"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SignCreditos" type="TextureButton" parent="MarginContainer/HBoxContainer/RightSection/SignsContainer"]
+texture_filter = 1
+custom_minimum_size = Vector2(160, 32)
+layout_mode = 2
+texture_normal = ExtResource("3_sign")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/RightSection/SignsContainer/SignCreditos"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.92, 0.86, 0.74, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.08, 0.16, 0.8)
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("4_mono")
+theme_override_font_sizes/font_size = 16
+text = "CRÉDITOS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SignSalir" type="TextureButton" parent="MarginContainer/HBoxContainer/RightSection/SignsContainer"]
+texture_filter = 1
+custom_minimum_size = Vector2(160, 32)
+layout_mode = 2
+texture_normal = ExtResource("3_sign")
+ignore_texture_size = true
+stretch_mode = 0
+
+[node name="Label" type="Label" parent="MarginContainer/HBoxContainer/RightSection/SignsContainer/SignSalir"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.92, 0.86, 0.74, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.08, 0.16, 0.8)
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("4_mono")
+theme_override_font_sizes/font_size = 16
+text = "SALIR"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="AudioOpen" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("6_audio_open")
+bus = &"SFX"
+
+[node name="AudioClose" type="AudioStreamPlayer" parent="."]
+stream = ExtResource("7_audio_close")
+bus = &"SFX"
