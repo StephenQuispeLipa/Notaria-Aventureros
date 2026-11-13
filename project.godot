@@ -11,13 +11,21 @@ config_version=5
 [application]
 
 config/name="Notaria de aventureros"
+run/main_scene="res://Scenes/Menus/OptionsMenu.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 config/icon="res://icon.svg"
 
+[autoload]
+
+AudioManager="*res://Scenes/Core/AudioManager.tscn"
+
 [display]
 
-window/stretch/mode="canvas_items"
-window/stretch/aspect="expand"
+window/size/viewport_width=570
+window/size/viewport_height=320
+window/size/window_width_override=1140
+window/size/window_height_override=640
+window/stretch/mode="viewport"
 
 [physics]
 
@@ -25,4 +33,6 @@ window/stretch/aspect="expand"
 
 [rendering]
 
+textures/canvas_textures/default_texture_filter=0
 rendering_device/driver.windows="d3d12"
+2d/snap/snap_2d_transforms_to_pixel=true
