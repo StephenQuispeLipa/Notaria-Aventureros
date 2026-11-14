@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://g6h8fglx36v2"]
+[gd_scene format=3 uid="uid://bimaqp6lm8was"]
 
 [ext_resource type="Script" uid="uid://clb3768ihxdrq" path="res://Scripts/Menus/options_menu.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://cl78pw42vnx2j" path="res://Assets/Art/UI/Fondo_Menu.png" id="2_4r2l2"]
@@ -65,8 +65,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -17.0
-offset_bottom = -17.0
+offset_top = -6.0
+offset_bottom = -6.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/margin_left = 58
@@ -79,7 +79,11 @@ layout_mode = 2
 theme_override_constants/separation = 6
 alignment = 1
 
-[node name="TitleLabel" type="Label" parent="ScrollPanel/ScrollMargin/ContentContainer" unique_id=945923429]
+[node name="TitleMargin" type="MarginContainer" parent="ScrollPanel/ScrollMargin/ContentContainer" unique_id=577416840]
+layout_mode = 2
+theme_override_constants/margin_top = -2
+
+[node name="TitleLabel" type="Label" parent="ScrollPanel/ScrollMargin/ContentContainer/TitleMargin" unique_id=945923429]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.24, 0.14, 0.16, 1)
@@ -89,7 +93,7 @@ text = "AJUSTES"
 horizontal_alignment = 1
 
 [node name="Spacer" type="Control" parent="ScrollPanel/ScrollMargin/ContentContainer" unique_id=813196491]
-custom_minimum_size = Vector2(0, 2)
+custom_minimum_size = Vector2(0, 1)
 layout_mode = 2
 
 [node name="OptionsList" type="VBoxContainer" parent="ScrollPanel/ScrollMargin/ContentContainer" unique_id=84328062]
@@ -212,6 +216,21 @@ theme_override_font_sizes/font_size = 16
 text = "[ NO ]"
 flat = true
 
+[node name="MarginBack" type="MarginContainer" parent="ScrollPanel/ScrollMargin/ContentContainer/OptionsList" unique_id=140878315]
+layout_mode = 2
+theme_override_constants/margin_top = -5
+
+[node name="BtnBackFromOptions" type="Button" parent="ScrollPanel/ScrollMargin/ContentContainer/OptionsList/MarginBack" unique_id=2049649668]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
+theme_override_colors/font_hover_color = Color(0.65, 0.35, 0.4, 1)
+theme_override_fonts/font = ExtResource("4_mono")
+theme_override_font_sizes/font_size = 16
+text = "VOLVER"
+flat = true
+
 [node name="CreditsList" type="VBoxContainer" parent="ScrollPanel/ScrollMargin/ContentContainer" unique_id=1874399554]
 unique_name_in_owner = true
 visible = false
@@ -249,6 +268,49 @@ theme_override_fonts/font = ExtResource("5_silver")
 theme_override_font_sizes/font_size = 16
 text = "¡Gracias por jugar!"
 horizontal_alignment = 1
+
+[node name="ConfirmExitContainer" type="VBoxContainer" parent="ScrollPanel/ScrollMargin/ContentContainer" unique_id=1874399555]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="QuestionLabel" type="Label" parent="ScrollPanel/ScrollMargin/ContentContainer/ConfirmExitContainer" unique_id=1244339683]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
+theme_override_fonts/font = ExtResource("5_silver")
+theme_override_font_sizes/font_size = 18
+text = "¿Seguro que deseas
+salir del juego?"
+horizontal_alignment = 1
+
+[node name="ConfirmButtonsRow" type="HBoxContainer" parent="ScrollPanel/ScrollMargin/ContentContainer/ConfirmExitContainer" unique_id=205087473]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="BtnConfirmExit" type="Button" parent="ScrollPanel/ScrollMargin/ContentContainer/ConfirmExitContainer/ConfirmButtonsRow" unique_id=1889404432]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.7, 0.2, 0.2, 1)
+theme_override_colors/font_hover_color = Color(0.9, 0.3, 0.3, 1)
+theme_override_fonts/font = ExtResource("4_mono")
+theme_override_font_sizes/font_size = 16
+text = "SÍ, SALIR"
+flat = true
+
+[node name="BtnCancelExit" type="Button" parent="ScrollPanel/ScrollMargin/ContentContainer/ConfirmExitContainer/ConfirmButtonsRow" unique_id=1094143404]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
+theme_override_colors/font_hover_color = Color(0.5, 0.3, 0.35, 1)
+theme_override_fonts/font = ExtResource("4_mono")
+theme_override_font_sizes/font_size = 16
+text = "CANCELAR"
+flat = true
 
 [node name="SignsContainer" type="VBoxContainer" parent="." unique_id=1285118430]
 unique_name_in_owner = true
