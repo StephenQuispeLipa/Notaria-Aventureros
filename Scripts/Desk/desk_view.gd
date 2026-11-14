@@ -12,10 +12,20 @@ const ESCRITURA_SFX: AudioStream = preload("res://Assets/Audio/SFX/escritura.wav
 const VIGNETTE_WHITE := Color(1.0, 1.0, 1.0, 0.9)
 const VIGNETTE_RED := Color(0.95, 0.12, 0.12, 0.95)
 
-const NPC_CENTER_X: float = 253.0
+const NPC_CENTER_X: float = 221.0
 const NPC_EXIT_OFFSET: float = 75.0
 const BOOK_PEEK_Y: float = 290.0
 const BOOK_HOVER_Y: float = 264.0
+const ITEM_DEFAULT_POS := Vector2(253.0, 236.0)
+const VIEWPORT_SIZE := Vector2(570.0, 320.0)
+const LENS_GLASS_RADIUS: float = 28.0
+const RUNE_ALPHABET := "abcdefghijklmnopqrstuvwxyz"
+const RUNE_COUNT := 10
+
+const RUNE_FONTS: Array[Font] = [
+	preload("res://Assets/Art/Fonts/Silver.ttf"),
+	preload("res://Assets/Art/Fonts/monogram-extended.ttf"),
+]
 
 const WIZARD_COLORS: Array[Color] = [
 	Color(0.32, 0.52, 0.88, 1.0), # Azul real
@@ -46,12 +56,17 @@ var is_transitioning: bool = false
 var is_day_ending: bool = false
 var _last_displayed_second: int = -1
 var _save_timer_accum: float = 0.0
+var _dragging_node: Control = null
+var _drag_offset: Vector2 = Vector2.ZERO
+var _runes: Array[Dictionary] = []
 
 @onready var day_progress_label: Label = %DayProgressLabel
 @onready var npc_rect: Control = %NPCRect
 @onready var npc_interior: TextureRect = %NPCInterior
 @onready var item_rect: ColorRect = %ItemRect
 @onready var item_label: Label = %ItemLabel
+@onready var rune_label: Label = %RuneLabel
+@onready var magic_lens: TextureRect = %MagicLens
 
 @onready var btn_book: Button = %BtnBook
 @onready var btn_cobrar: Button = %BtnCobrar
@@ -89,11 +104,18 @@ func _ready() -> void:
 	btn_restart_day.pressed.connect(_on_restart_game_pressed)
 	btn_back_menu.pressed.connect(_on_back_menu_pressed)
 
+	item_rect.gui_input.connect(_on_draggable_gui_input.bind(item_rect))
+	magic_lens.gui_input.connect(_on_draggable_gui_input.bind(magic_lens))
+
+	_setup_runes()
 	_start_current_day()
 
 func _process(delta: float) -> void:
 	if day_end_overlay.visible or is_day_ending:
 		return
+
+	_update_runes(delta)
+	_update_magic_lens_shaders()
 
 	time_remaining = maxf(time_remaining - delta, 0.0)
 	GameManager.day_time_remaining = time_remaining
@@ -123,6 +145,90 @@ func _exit_tree() -> void:
 		GameManager.arrests_today = arrests_today
 		GameManager.charges_today = charges_today
 		GameManager.save_game()
+
+func _input(event: InputEvent) -> void:
+	if _dragging_node != null and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
+		_dragging_node = null
+
+func _on_draggable_gui_input(event: InputEvent, target: Control) -> void:
+	if is_day_ending or day_end_overlay.visible or book_overlay.visible:
+		return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed:
+			_dragging_node = target
+			_drag_offset = target.global_position - get_global_mouse_position()
+			get_viewport().set_input_as_handled()
+		elif _dragging_node == target:
+			_dragging_node = null
+			get_viewport().set_input_as_handled()
+	elif event is InputEventMouseMotion and _dragging_node == target:
+		var new_pos := get_global_mouse_position() + _drag_offset
+		new_pos = new_pos.clamp(Vector2.ZERO, VIEWPORT_SIZE - target.size)
+		target.global_position = new_pos
+		_update_magic_lens_shaders()
+		get_viewport().set_input_as_handled()
+
+func _update_magic_lens_shaders() -> void:
+	var lens_center_global := magic_lens.global_position + magic_lens.size * 0.5
+	var item_mat := item_rect.material as ShaderMaterial
+	if item_mat:
+		item_mat.set_shader_parameter("lens_center_px", lens_center_global - item_rect.global_position)
+		item_mat.set_shader_parameter("lens_radius_px", LENS_GLASS_RADIUS)
+	var rune_mat := rune_label.material as ShaderMaterial
+	if rune_mat:
+		rune_mat.set_shader_parameter("lens_center_px", lens_center_global)
+		rune_mat.set_shader_parameter("lens_radius_px", LENS_GLASS_RADIUS)
+
+func _setup_runes() -> void:
+	rune_label.size = Vector2(14.0, 18.0)
+	_runes.append({"label": rune_label, "vel": Vector2.ZERO, "dir": 0})
+	for _i in range(RUNE_COUNT - 1):
+		var lbl := rune_label.duplicate() as Label
+		item_rect.add_child(lbl)
+		_runes.append({"label": lbl, "vel": Vector2.ZERO, "dir": 0})
+
+func _randomize_all_runes() -> void:
+	for entry in _runes:
+		_reset_rune(entry, true)
+
+func _reset_rune(entry: Dictionary, random_along_axis: bool) -> void:
+	var lbl := entry["label"] as Label
+	lbl.text = RUNE_ALPHABET[randi() % RUNE_ALPHABET.length()]
+	lbl.add_theme_font_override("font", RUNE_FONTS.pick_random())
+
+	var dir := randi() % 4
+	var speed := randf_range(18.0, 36.0)
+	var item_w := item_rect.size.x
+	var item_h := item_rect.size.y
+	entry["dir"] = dir
+
+	match dir:
+		0: # Izquierda -> Derecha
+			entry["vel"] = Vector2(speed, 0.0)
+			lbl.position = Vector2(randf_range(-12.0, item_w) if random_along_axis else -12.0, randf_range(0.0, item_h - 16.0))
+		1: # Derecha -> Izquierda
+			entry["vel"] = Vector2(-speed, 0.0)
+			lbl.position = Vector2(randf_range(0.0, item_w + 12.0) if random_along_axis else item_w + 2.0, randf_range(0.0, item_h - 16.0))
+		2: # Arriba -> Abajo
+			entry["vel"] = Vector2(0.0, speed)
+			lbl.position = Vector2(randf_range(2.0, item_w - 14.0), randf_range(-16.0, item_h) if random_along_axis else -16.0)
+		3: # Abajo -> Arriba
+			entry["vel"] = Vector2(0.0, -speed)
+			lbl.position = Vector2(randf_range(2.0, item_w - 14.0), randf_range(0.0, item_h + 16.0) if random_along_axis else item_h + 2.0)
+
+func _update_runes(delta: float) -> void:
+	var item_w := item_rect.size.x
+	var item_h := item_rect.size.y
+	for entry in _runes:
+		var lbl := entry["label"] as Label
+		var vel: Vector2 = entry["vel"]
+		var dir: int = entry["dir"]
+		lbl.position += vel * delta
+		if (dir == 0 and lbl.position.x > item_w + 4.0) \
+			or (dir == 1 and lbl.position.x < -14.0) \
+			or (dir == 2 and lbl.position.y > item_h + 4.0) \
+			or (dir == 3 and lbl.position.y < -18.0):
+			_reset_rune(entry, false)
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE:
@@ -187,6 +293,9 @@ func _spawn_current_npc() -> void:
 	var display_num := current_npc_index + 1
 	npc_interior.modulate = WIZARD_COLORS.pick_random()
 	item_label.text = "[Objeto %d\n64x64]" % display_num
+	item_rect.position = ITEM_DEFAULT_POS
+	_randomize_all_runes()
+	_update_magic_lens_shaders()
 
 	npc_rect.position.x = NPC_CENTER_X
 	npc_rect.modulate.a = 0.0
