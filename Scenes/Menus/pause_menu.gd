@@ -5,7 +5,7 @@ var bus_master_idx: int = 0
 var bus_bgm_idx: int = 1
 var bus_sfx_idx: int = 2
 
-@onready var dimmer: ColorRect = $Dimmer
+
 @onready var parchment_center: CenterContainer = $ParchmentCenter
 @onready var parchment: TextureRect = $ParchmentCenter/Parchment
 @onready var title_label: Label = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/TitleLabel
@@ -46,8 +46,7 @@ func _ready() -> void:
 	parchment_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if lbl_menu:
 		lbl_menu.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if dimmer:
-		dimmer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
 
 	# 2. Configurar buses de audio
 	_setup_audio_buses()
@@ -148,8 +147,7 @@ func toggle_menu() -> void:
 func open_menu() -> void:
 	is_open = true
 	parchment.visible = true
-	if dimmer:
-		dimmer.visible = true
+	
 	_show_pause_buttons()
 	get_tree().paused = true
 	if audio_open:
@@ -158,8 +156,7 @@ func open_menu() -> void:
 func close_menu(play_sound: bool = true) -> void:
 	is_open = false
 	parchment.visible = false
-	if dimmer:
-		dimmer.visible = false
+	
 	get_tree().paused = false
 	if play_sound and audio_close:
 		audio_close.play()
