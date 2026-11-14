@@ -14,32 +14,32 @@ var bus_master_idx: int = 0
 var bus_bgm_idx: int = 1
 var bus_sfx_idx: int = 2
 
-@onready var scroll_panel: TextureRect = $MarginContainer/HBoxContainer/LeftSection/ScrollPanel
-@onready var title_label: Label = $MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/TitleLabel
-@onready var options_list: VBoxContainer = $MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList
-@onready var credits_list: VBoxContainer = $MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/CreditsList
+@onready var scroll_panel: TextureRect = %ScrollPanel
+@onready var title_label: Label = %TitleLabel
+@onready var options_list: VBoxContainer = %OptionsList
+@onready var credits_list: VBoxContainer = %CreditsList
 
 # Controles de Opciones
-@onready var slider_master: HSlider = $MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/MasterContainer/SliderMaster
-@onready var val_master: Label = $MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/MasterContainer/Header/ValMaster
+@onready var slider_master: HSlider = %SliderMaster
+@onready var val_master: Label = %ValMaster
 
-@onready var slider_bgm: HSlider = $MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/BGMContainer/SliderBGM
-@onready var val_bgm: Label = $MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/BGMContainer/Header/ValBGM
+@onready var slider_bgm: HSlider = %SliderBGM
+@onready var val_bgm: Label = %ValBGM
 
-@onready var slider_sfx: HSlider = $MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/SFXContainer/SliderSFX
-@onready var val_sfx: Label = $MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/SFXContainer/Header/ValSFX
+@onready var slider_sfx: HSlider = %SliderSFX
+@onready var val_sfx: Label = %ValSFX
 
-@onready var btn_fullscreen: Button = $MarginContainer/HBoxContainer/LeftSection/ScrollPanel/ScrollMargin/ContentContainer/OptionsList/FullscreenContainer/BtnFullscreen
+@onready var btn_fullscreen: Button = %BtnFullscreen
 
 # Botones de navegación
-@onready var sign_jugar: TextureButton = $MarginContainer/HBoxContainer/RightSection/SignsContainer/SignJugar
-@onready var sign_continuar: TextureButton = $MarginContainer/HBoxContainer/RightSection/SignsContainer/SignContinuar
-@onready var sign_opciones: TextureButton = $MarginContainer/HBoxContainer/RightSection/SignsContainer/SignOpciones
-@onready var sign_creditos: TextureButton = $MarginContainer/HBoxContainer/RightSection/SignsContainer/SignCreditos
-@onready var sign_salir: TextureButton = $MarginContainer/HBoxContainer/RightSection/SignsContainer/SignSalir
+@onready var sign_jugar: TextureButton = %SignJugar
+@onready var sign_continuar: TextureButton = %SignContinuar
+@onready var sign_opciones: TextureButton = %SignOpciones
+@onready var sign_creditos: TextureButton = %SignCreditos
+@onready var sign_salir: TextureButton = %SignSalir
 
-@onready var audio_open: AudioStreamPlayer = $AudioOpen
-@onready var audio_close: AudioStreamPlayer = $AudioClose
+@onready var audio_open: AudioStreamPlayer = %AudioOpen
+@onready var audio_close: AudioStreamPlayer = %AudioClose
 
 func _ready() -> void:
 	scroll_panel.visible = false

@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://d10u421ope070"]
 
 [ext_resource type="Script" uid="uid://bw7bpua8lvm16" path="res://Scenes/Menus/pause_menu.gd" id="1_52or0"]
-[ext_resource type="Texture2D" uid="uid://udxfkmomwh5a" path="res://Assets/Art/UI/menu_sign.png" id="1_cianu"]
+[ext_resource type="Texture2D" uid="uid://cbud7cl64r3u6" path="res://Assets/Art/UI/Boton_Madera.png" id="2_atuhp"]
 [ext_resource type="FontFile" uid="uid://dgwip3ywtyl8t" path="res://Assets/Art/Fonts/monogram-extended.ttf" id="2_rqyw7"]
-[ext_resource type="Texture2D" uid="uid://cbnkxwkoheyki" path="res://Assets/Art/UI/options_scroll.png" id="3_rqyw7"]
+[ext_resource type="Texture2D" uid="uid://dtc8il0tixkh1" path="res://Assets/Art/UI/Pergamino.png" id="4_atuhp"]
 [ext_resource type="AudioStream" uid="uid://cv8qk7y4ttca2" path="res://Assets/Audio/SFX/papel-open.wav" id="4_x6o4q"]
 [ext_resource type="AudioStream" uid="uid://ve5yidgkhu0r" path="res://Assets/Audio/SFX/papel-close.wav" id="5_52or0"]
 [ext_resource type="FontFile" uid="uid://b2c5twfkqaw51" path="res://Assets/Art/Fonts/Silver.ttf" id="5_atuhp"]
@@ -12,12 +12,6 @@
 process_mode = 3
 script = ExtResource("1_52or0")
 
-[node name="Dimmer" type="ColorRect" parent="." unique_id=1986491747]
-offset_right = 97.0
-offset_bottom = 31.0
-mouse_filter = 2
-color = Color(0, 0, 0, 1)
-
 [node name="TopRightCorner" type="MarginContainer" parent="." unique_id=2038507890]
 offset_right = 96.0
 offset_bottom = 32.0
@@ -25,15 +19,15 @@ layout_direction = 2
 
 [node name="BtnMenu" type="TextureButton" parent="TopRightCorner" unique_id=1454160303]
 layout_mode = 2
-texture_normal = ExtResource("1_cianu")
+texture_normal = ExtResource("2_atuhp")
 ignore_texture_size = true
 
 [node name="Label" type="Label" parent="TopRightCorner/BtnMenu" unique_id=1368869165]
 layout_mode = 0
-offset_left = 28.0
+offset_left = 57.0
 offset_top = 3.0
-offset_right = 77.0
-offset_bottom = 26.0
+offset_right = 98.0
+offset_bottom = 25.0
 theme_override_fonts/font = ExtResource("2_rqyw7")
 theme_override_font_sizes/font_size = 27
 text = "MENÚ"
@@ -48,7 +42,7 @@ grow_vertical = 2
 [node name="Parchment" type="TextureRect" parent="ParchmentCenter" unique_id=1087723881]
 custom_minimum_size = Vector2(270, 270)
 layout_mode = 2
-texture = ExtResource("3_rqyw7")
+texture = ExtResource("4_atuhp")
 expand_mode = 1
 
 [node name="ParchmentMargin" type="MarginContainer" parent="ParchmentCenter/Parchment" unique_id=1863474465]
@@ -91,14 +85,13 @@ theme_override_constants/separation = -19
 custom_minimum_size = Vector2(20, 60)
 layout_mode = 2
 size_flags_horizontal = 4
-texture_normal = ExtResource("1_cianu")
 
 [node name="Label" type="Label" parent="ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/PauseButtons/BtnResume" unique_id=1190997901]
 layout_mode = 0
-offset_left = 17.0
-offset_top = 4.25
-offset_right = 80.0
-offset_bottom = 27.25
+offset_left = -21.0
+offset_top = 38.75
+offset_right = 42.0
+offset_bottom = 61.75
 theme_override_fonts/font = ExtResource("2_rqyw7")
 theme_override_font_sizes/font_size = 20
 text = "Reanudar"
@@ -106,7 +99,6 @@ text = "Reanudar"
 [node name="BtnOptions" type="TextureButton" parent="ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/PauseButtons" unique_id=2055277302]
 custom_minimum_size = Vector2(50, 60)
 layout_mode = 2
-texture_normal = ExtResource("1_cianu")
 ignore_texture_size = true
 
 [node name="Label" type="Label" parent="ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/PauseButtons/BtnOptions" unique_id=1570234105]
@@ -116,10 +108,10 @@ anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -30.0
-offset_top = -25.5
-offset_right = 33.0
-offset_bottom = -2.5
+offset_left = -31.0
+offset_top = -11.25
+offset_right = 32.0
+offset_bottom = 11.75
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_fonts/font = ExtResource("2_rqyw7")
@@ -129,15 +121,14 @@ text = "Opciones"
 [node name="BtnExit" type="TextureButton" parent="ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/PauseButtons" unique_id=814574137]
 custom_minimum_size = Vector2(60, 20)
 layout_mode = 2
-texture_normal = ExtResource("1_cianu")
 ignore_texture_size = true
 
 [node name="Label" type="Label" parent="ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/PauseButtons/BtnExit" unique_id=932826152]
 layout_mode = 0
-offset_left = 31.0
-offset_top = 4.75
-offset_right = 71.0
-offset_bottom = 27.75
+offset_left = 13.0
+offset_top = 5.75
+offset_right = 53.0
+offset_bottom = 28.75
 theme_override_fonts/font = ExtResource("2_rqyw7")
 theme_override_font_sizes/font_size = 20
 text = "Salir"
