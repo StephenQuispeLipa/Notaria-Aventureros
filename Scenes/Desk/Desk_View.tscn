@@ -81,12 +81,13 @@ unique_name_in_owner = true
 layout_mode = 0
 offset_left = 12.0
 offset_top = 10.0
-offset_right = 200.0
-offset_bottom = 28.0
+offset_right = 240.0
+offset_bottom = 48.0
 theme_override_colors/font_color = Color(0.92, 0.86, 0.74, 1)
 theme_override_fonts/font = ExtResource("3_mono")
 theme_override_font_sizes/font_size = 16
-text = "Nivel 1 - NPC 1/4"
+text = "Día 1/5  |  01:00  |  $20
+Tamaño de la fila: 4"
 
 [node name="NPCRect" type="ColorRect" parent="." unique_id=1071050630]
 unique_name_in_owner = true
@@ -316,67 +317,84 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.65)
+color = Color(0, 0, 0, 1)
 
-[node name="Panel" type="ColorRect" parent="DayEndOverlay" unique_id=1557778944]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -135.0
-offset_top = -65.0
-offset_right = 135.0
-offset_bottom = 65.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.89, 0.81, 0.67, 1)
-
-[node name="VBox" type="VBoxContainer" parent="DayEndOverlay/Panel" unique_id=670191917]
+[node name="Margin" type="MarginContainer" parent="DayEndOverlay"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="DayEndOverlay/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
 alignment = 1
 
-[node name="DayEndLabel" type="Label" parent="DayEndOverlay/Panel/VBox" unique_id=561240209]
+[node name="DayEndTitle" type="Label" parent="DayEndOverlay/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.14, 0.16, 1)
-theme_override_fonts/font = ExtResource("4_silver")
-theme_override_font_sizes/font_size = 16
-text = "Nivel 1 completado"
-horizontal_alignment = 1
-
-[node name="Buttons" type="HBoxContainer" parent="DayEndOverlay/Panel/VBox" unique_id=1017720665]
-layout_mode = 2
-theme_override_constants/separation = 16
-alignment = 1
-
-[node name="BtnRestartDay" type="Button" parent="DayEndOverlay/Panel/VBox/Buttons" unique_id=937152307]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
-theme_override_colors/font_hover_color = Color(0.55, 0.35, 0.2, 1)
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
 theme_override_fonts/font = ExtResource("3_mono")
 theme_override_font_sizes/font_size = 16
-text = "REPETIR"
-flat = true
+text = "RESUMEN DEL DÍA 1"
+horizontal_alignment = 1
 
-[node name="BtnBackMenu" type="Button" parent="DayEndOverlay/Panel/VBox/Buttons" unique_id=1962225852]
+[node name="DayEndLabel" type="RichTextLabel" parent="DayEndOverlay/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/default_color = Color(0.92, 0.86, 0.74, 1)
+theme_override_fonts/normal_font = ExtResource("3_mono")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "Resumen"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+horizontal_alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="DayEndOverlay/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="BtnNextDay" type="Button" parent="DayEndOverlay/Margin/VBox/Buttons"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
-theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
-theme_override_colors/font_hover_color = Color(0.65, 0.25, 0.25, 1)
+flat = true
+theme_override_colors/font_color = Color(0.7, 0.95, 0.65, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 0.5, 1)
+theme_override_fonts/font = ExtResource("3_mono")
+theme_override_font_sizes/font_size = 16
+text = "DÍA 2"
+
+[node name="BtnRestartDay" type="Button" parent="DayEndOverlay/Margin/VBox/Buttons"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+focus_mode = 0
+flat = true
+theme_override_colors/font_color = Color(0.7, 0.95, 0.65, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 0.5, 1)
+theme_override_fonts/font = ExtResource("3_mono")
+theme_override_font_sizes/font_size = 16
+text = "REINTENTAR"
+
+[node name="BtnBackMenu" type="Button" parent="DayEndOverlay/Margin/VBox/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+flat = true
+theme_override_colors/font_color = Color(0.92, 0.86, 0.74, 1)
+theme_override_colors/font_hover_color = Color(0.95, 0.45, 0.45, 1)
 theme_override_fonts/font = ExtResource("3_mono")
 theme_override_font_sizes/font_size = 16
 text = "MENÚ"
-flat = true
 
 [node name="PauseMenu" parent="." unique_id=1238947580 instance=ExtResource("2_pause_menu")]
