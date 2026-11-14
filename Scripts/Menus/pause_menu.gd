@@ -1,70 +1,60 @@
+class_name PauseMenu
 extends CanvasLayer
 
-# Índices de buses de sonido
 var bus_master_idx: int = 0
 var bus_bgm_idx: int = 1
 var bus_sfx_idx: int = 2
 
-
+@onready var dimmer: ColorRect = $Dimmer
 @onready var parchment_center: CenterContainer = $ParchmentCenter
-@onready var parchment: TextureRect = $ParchmentCenter/Parchment
-@onready var title_label: Label = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/TitleLabel
+@onready var title_label: Label = %TitleLabel
 
-# Botón menú en la esquina
 @onready var btn_menu: BaseButton = $TopRightCorner/BtnMenu
-@onready var lbl_menu: Label = $TopRightCorner/BtnMenu/Label
 
-# Contenedores de botones
 @onready var pause_buttons: VBoxContainer = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/PauseButtons
 @onready var options_container: VBoxContainer = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/OptionsContainer
+@onready var confirm_exit_container: VBoxContainer = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/ConfirmExitContainer
 
-# Botones de pausa
-@onready var btn_resume: TextureButton = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/PauseButtons/BtnResume
-@onready var btn_options: TextureButton = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/PauseButtons/BtnOptions
-@onready var btn_exit: TextureButton = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/PauseButtons/BtnExit
+@onready var btn_resume: Button = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/PauseButtons/BtnResume
+@onready var btn_options: Button = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/PauseButtons/BtnOptions
+@onready var btn_exit: Button = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/PauseButtons/BtnExit
 
-# Sliders y controles de opciones
+@onready var btn_back_from_options: Button = %BtnBackFromOptions
+@onready var btn_confirm_exit: Button = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/ConfirmExitContainer/ConfirmButtonsRow/BtnConfirmExit
+@onready var btn_cancel_exit: Button = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/ConfirmExitContainer/ConfirmButtonsRow/BtnCancelExit
+
 @onready var slider_master: HSlider = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/OptionsContainer/MasterContainer/SliderMaster
 @onready var val_master: Label = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/OptionsContainer/MasterContainer/Header/ValMaster
-
 @onready var slider_bgm: HSlider = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/OptionsContainer/BGMContainer/SliderBGM
 @onready var val_bgm: Label = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/OptionsContainer/BGMContainer/Header/ValBGM
-
 @onready var slider_sfx: HSlider = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/OptionsContainer/SFXContainer/SliderSFX
 @onready var val_sfx: Label = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/OptionsContainer/SFXContainer/Header/ValSFX
-
 @onready var btn_fullscreen: Button = $ParchmentCenter/Parchment/ParchmentMargin/VBoxContent/OptionsContainer/FullscreenContainer/BtnFullscreen
 
-# Sonidos
 @onready var audio_open: AudioStreamPlayer = $AudioOpen
 @onready var audio_close: AudioStreamPlayer = $AudioClose
 
 var is_open: bool = false
 
 func _ready() -> void:
-	# 1. SOLUCIÓN A LOS CLICS: Evita que los contenedores invisibles y labels bloqueen el ratón
-	parchment_center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	if lbl_menu:
-		lbl_menu.mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-
-	# 2. Configurar buses de audio
 	_setup_audio_buses()
 	_update_fullscreen_button()
 
-	# 3. Conectar sliders
 	slider_master.value_changed.connect(_on_master_changed)
 	slider_bgm.value_changed.connect(_on_bgm_changed)
 	slider_sfx.value_changed.connect(_on_sfx_changed)
 	btn_fullscreen.pressed.connect(_on_fullscreen_pressed)
 
-	# 4. Conectar botones de navegación
 	btn_menu.pressed.connect(toggle_menu)
 	btn_resume.pressed.connect(close_menu)
 	btn_options.pressed.connect(_show_options)
-	btn_exit.pressed.connect(_on_exit_pressed)
+	btn_exit.pressed.connect(_show_confirm_exit)
 
-	close_menu(false) # Iniciar cerrado
+	btn_back_from_options.pressed.connect(_show_pause_buttons)
+	btn_confirm_exit.pressed.connect(_on_confirm_exit_pressed)
+	btn_cancel_exit.pressed.connect(_show_pause_buttons)
+
+	close_menu(false)
 
 func _setup_audio_buses() -> void:
 	bus_master_idx = AudioServer.get_bus_index("Master")
@@ -129,8 +119,7 @@ func _on_fullscreen_pressed() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
 		if is_open:
-			# Si estamos en opciones, volver al menú de pausa; si ya estamos en pausa, cerrar
-			if options_container.visible:
+			if options_container.visible or confirm_exit_container.visible:
 				_show_pause_buttons()
 			else:
 				close_menu()
@@ -146,8 +135,8 @@ func toggle_menu() -> void:
 
 func open_menu() -> void:
 	is_open = true
-	parchment.visible = true
-	
+	dimmer.visible = true
+	parchment_center.visible = true
 	_show_pause_buttons()
 	get_tree().paused = true
 	if audio_open:
@@ -155,8 +144,8 @@ func open_menu() -> void:
 
 func close_menu(play_sound: bool = true) -> void:
 	is_open = false
-	parchment.visible = false
-	
+	dimmer.visible = false
+	parchment_center.visible = false
 	get_tree().paused = false
 	if play_sound and audio_close:
 		audio_close.play()
@@ -165,13 +154,21 @@ func _show_pause_buttons() -> void:
 	title_label.text = "PAUSA"
 	pause_buttons.visible = true
 	options_container.visible = false
+	confirm_exit_container.visible = false
 
 func _show_options() -> void:
 	title_label.text = "AJUSTES"
 	pause_buttons.visible = false
 	options_container.visible = true
+	confirm_exit_container.visible = false
 	_update_fullscreen_button()
 
-func _on_exit_pressed() -> void:
+func _show_confirm_exit() -> void:
+	title_label.text = "¿SALIR?"
+	pause_buttons.visible = false
+	options_container.visible = false
+	confirm_exit_container.visible = true
+
+func _on_confirm_exit_pressed() -> void:
 	get_tree().paused = false
 	get_tree().change_scene_to_file("res://Scenes/Menus/OptionsMenu.tscn")

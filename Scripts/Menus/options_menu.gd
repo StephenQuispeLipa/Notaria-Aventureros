@@ -1,15 +1,25 @@
 class_name OptionsMenu
 extends Control
 
+const SIGN_NORMAL_COLOR := Color(0.92, 0.86, 0.74, 1)
+const SIGN_HOVER_COLOR := Color(1.0, 0.85, 0.2, 1)
+
+const HOVER_SFX: Array[AudioStream] = [
+	preload("res://Assets/Audio/SFX/madera-boton-1.wav"),
+	preload("res://Assets/Audio/SFX/madera-boton-2.wav"),
+	preload("res://Assets/Audio/SFX/madera-boton-3.wav"),
+]
+const PLAY_SFX: AudioStream = preload("res://Assets/Audio/SFX/llaves-mesa.wav")
+
 enum PanelMode {
 	NONE,
 	OPTIONS,
-	CREDITS
+	CREDITS,
+	CONFIRM_EXIT
 }
 
 var current_mode: PanelMode = PanelMode.NONE
 
-# Índices de Audio Buses
 var bus_master_idx: int = 0
 var bus_bgm_idx: int = 1
 var bus_sfx_idx: int = 2
@@ -18,8 +28,8 @@ var bus_sfx_idx: int = 2
 @onready var title_label: Label = %TitleLabel
 @onready var options_list: VBoxContainer = %OptionsList
 @onready var credits_list: VBoxContainer = %CreditsList
+@onready var confirm_exit_container: VBoxContainer = %ConfirmExitContainer
 
-# Controles de Opciones
 @onready var slider_master: HSlider = %SliderMaster
 @onready var val_master: Label = %ValMaster
 
@@ -30,8 +40,11 @@ var bus_sfx_idx: int = 2
 @onready var val_sfx: Label = %ValSFX
 
 @onready var btn_fullscreen: Button = %BtnFullscreen
+@onready var btn_back_from_options: Button = %BtnBackFromOptions
 
-# Botones de navegación
+@onready var btn_confirm_exit: Button = %BtnConfirmExit
+@onready var btn_cancel_exit: Button = %BtnCancelExit
+
 @onready var sign_jugar: TextureButton = %SignJugar
 @onready var sign_continuar: TextureButton = %SignContinuar
 @onready var sign_opciones: TextureButton = %SignOpciones
@@ -48,18 +61,31 @@ func _ready() -> void:
 	_setup_audio_buses()
 	_update_fullscreen_button()
 
-	# Conexión de sliders
 	slider_master.value_changed.connect(_on_master_changed)
 	slider_bgm.value_changed.connect(_on_bgm_changed)
 	slider_sfx.value_changed.connect(_on_sfx_changed)
 	btn_fullscreen.pressed.connect(_on_fullscreen_pressed)
+	btn_back_from_options.pressed.connect(close_parchment)
 
-	# Conexión de carteles
 	sign_jugar.pressed.connect(_on_jugar_pressed)
 	sign_continuar.pressed.connect(_on_continuar_pressed)
 	sign_opciones.pressed.connect(_on_opciones_pressed)
 	sign_creditos.pressed.connect(_on_creditos_pressed)
 	sign_salir.pressed.connect(_on_salir_pressed)
+
+	btn_confirm_exit.pressed.connect(_on_confirm_exit_pressed)
+	btn_cancel_exit.pressed.connect(_on_cancel_exit_pressed)
+
+	var sign_buttons: Array[TextureButton] = [
+		sign_jugar,
+		sign_continuar,
+		sign_opciones,
+		sign_creditos,
+		sign_salir,
+	]
+	for btn in sign_buttons:
+		btn.mouse_entered.connect(_on_sign_mouse_entered.bind(btn))
+		btn.mouse_exited.connect(_on_sign_mouse_exited.bind(btn))
 
 func _setup_audio_buses() -> void:
 	bus_master_idx = AudioServer.get_bus_index("Master")
@@ -93,7 +119,6 @@ func _set_bus_volume(bus_idx: int, linear_val: float) -> void:
 		AudioServer.set_bus_mute(bus_idx, true)
 	else:
 		AudioServer.set_bus_mute(bus_idx, false)
-		# Conversión logarítmica: de escala lineal (0 a 1) a decibeles
 		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(linear_val))
 
 func _on_master_changed(value: float) -> void:
@@ -127,12 +152,25 @@ func _unhandled_input(event: InputEvent) -> void:
 		close_parchment()
 		get_viewport().set_input_as_handled()
 
+func _on_sign_mouse_entered(btn: TextureButton) -> void:
+	var label := btn.get_node_or_null("Label") as Label
+	if label:
+		label.add_theme_color_override("font_color", SIGN_HOVER_COLOR)
+	AudioManager.play_sfx(HOVER_SFX.pick_random())
+
+func _on_sign_mouse_exited(btn: TextureButton) -> void:
+	var label := btn.get_node_or_null("Label") as Label
+	if label:
+		label.add_theme_color_override("font_color", SIGN_NORMAL_COLOR)
+
 func _on_jugar_pressed() -> void:
+	AudioManager.play_sfx(PLAY_SFX)
 	if scroll_panel.visible:
 		close_parchment()
 	get_tree().change_scene_to_file("res://Scenes/Desk/Desk_View.tscn")
 
 func _on_continuar_pressed() -> void:
+	AudioManager.play_sfx(PLAY_SFX)
 	if scroll_panel.visible:
 		close_parchment()
 
@@ -149,24 +187,32 @@ func _on_creditos_pressed() -> void:
 		open_parchment(PanelMode.CREDITS)
 
 func _on_salir_pressed() -> void:
-	if scroll_panel.visible:
+	if current_mode == PanelMode.CONFIRM_EXIT and scroll_panel.visible:
 		close_parchment()
 	else:
-		get_tree().quit()
+		open_parchment(PanelMode.CONFIRM_EXIT)
+
+func _on_confirm_exit_pressed() -> void:
+	get_tree().quit()
+
+func _on_cancel_exit_pressed() -> void:
+	close_parchment()
 
 func open_parchment(mode: PanelMode) -> void:
 	current_mode = mode
 	scroll_panel.visible = true
 	_update_fullscreen_button()
 
+	options_list.visible = (mode == PanelMode.OPTIONS)
+	credits_list.visible = (mode == PanelMode.CREDITS)
+	confirm_exit_container.visible = (mode == PanelMode.CONFIRM_EXIT)
+
 	if mode == PanelMode.OPTIONS:
 		title_label.text = "AJUSTES"
-		options_list.visible = true
-		credits_list.visible = false
 	elif mode == PanelMode.CREDITS:
 		title_label.text = "CRÉDITOS"
-		options_list.visible = false
-		credits_list.visible = true
+	elif mode == PanelMode.CONFIRM_EXIT:
+		title_label.text = "¿SALIR?"
 
 	audio_open.play()
 
