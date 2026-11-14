@@ -12,8 +12,21 @@ const ESCRITURA_SFX: AudioStream = preload("res://Assets/Audio/SFX/escritura.wav
 const VIGNETTE_WHITE := Color(1.0, 1.0, 1.0, 0.9)
 const VIGNETTE_RED := Color(0.95, 0.12, 0.12, 0.95)
 
-const NPC_CENTER_X: float = 245.0
+const NPC_CENTER_X: float = 253.0
 const NPC_EXIT_OFFSET: float = 75.0
+const BOOK_PEEK_Y: float = 290.0
+const BOOK_HOVER_Y: float = 264.0
+
+const WIZARD_COLORS: Array[Color] = [
+	Color(0.32, 0.52, 0.88, 1.0), # Azul real
+	Color(0.84, 0.28, 0.28, 1.0), # Rojo carmesí
+	Color(0.28, 0.72, 0.42, 1.0), # Verde esmeralda
+	Color(0.64, 0.34, 0.82, 1.0), # Morado arcano
+	Color(0.88, 0.68, 0.24, 1.0), # Dorado
+	Color(0.26, 0.72, 0.78, 1.0), # Turquesa
+	Color(0.82, 0.44, 0.68, 1.0), # Magenta suave
+	Color(0.76, 0.74, 0.70, 1.0), # Gris claro
+]
 
 const FAMILY_MEMBERS: Array[String] = ["Esposa", "Hijo", "Hija"]
 const ILLNESS_MIN_COST := 8
@@ -35,8 +48,8 @@ var _last_displayed_second: int = -1
 var _save_timer_accum: float = 0.0
 
 @onready var day_progress_label: Label = %DayProgressLabel
-@onready var npc_rect: ColorRect = %NPCRect
-@onready var npc_label: Label = %NPCLabel
+@onready var npc_rect: Control = %NPCRect
+@onready var npc_interior: TextureRect = %NPCInterior
 @onready var item_rect: ColorRect = %ItemRect
 @onready var item_label: Label = %ItemLabel
 
@@ -64,6 +77,8 @@ func _ready() -> void:
 	_set_vignette(Color.WHITE, 0.0)
 
 	btn_book.pressed.connect(_open_book)
+	btn_book.mouse_entered.connect(_on_book_mouse_entered)
+	btn_book.mouse_exited.connect(_on_book_mouse_exited)
 	btn_close_book.pressed.connect(_close_book)
 	book_backdrop.gui_input.connect(_on_book_backdrop_gui_input)
 
@@ -110,9 +125,25 @@ func _exit_tree() -> void:
 		GameManager.save_game()
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE:
+		if not day_end_overlay.visible and not is_day_ending:
+			if book_overlay.visible:
+				_close_book()
+			else:
+				_open_book()
+			get_viewport().set_input_as_handled()
+			return
 	if book_overlay.visible and event.is_action_pressed("ui_cancel"):
 		_close_book()
 		get_viewport().set_input_as_handled()
+
+func _on_book_mouse_entered() -> void:
+	var tween := create_tween()
+	tween.tween_property(btn_book, "position:y", BOOK_HOVER_Y, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+func _on_book_mouse_exited() -> void:
+	var tween := create_tween()
+	tween.tween_property(btn_book, "position:y", BOOK_PEEK_Y, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 func _start_current_day() -> void:
 	total_npcs = GameManager.npcs_today_count
@@ -136,7 +167,7 @@ func _start_current_day() -> void:
 
 func _update_day_progress_label() -> void:
 	var sec := maxi(ceili(time_remaining), 0)
-	var mins := sec / 60
+	var mins := floori(sec / 60.0)
 	var rem_sec := sec % 60
 	var remaining_npcs := maxi(total_npcs - current_npc_index, 0)
 	day_progress_label.text = "Día %d/%d  |  %02d:%02d  |  $%d\nTamaño de la fila: %d" % [
@@ -154,7 +185,7 @@ func _spawn_current_npc() -> void:
 	_update_day_progress_label()
 
 	var display_num := current_npc_index + 1
-	npc_label.text = "[NPC %d\n80x96]" % display_num
+	npc_interior.modulate = WIZARD_COLORS.pick_random()
 	item_label.text = "[Objeto %d\n64x64]" % display_num
 
 	npc_rect.position.x = NPC_CENTER_X
@@ -253,7 +284,7 @@ func _on_book_backdrop_gui_input(event: InputEvent) -> void:
 func _show_day_summary(timed_out: bool = false) -> void:
 	is_day_ending = true
 	var prev_money := GameManager.money
-	var salary := GameManagerClass.FIXED_DAILY_SALARY / 2 if timed_out else GameManagerClass.FIXED_DAILY_SALARY
+	var salary := floori(GameManagerClass.FIXED_DAILY_SALARY / 2.0) if timed_out else GameManagerClass.FIXED_DAILY_SALARY
 	var arrest_rate := randi_range(4, 7)
 	var arrest_bonus := arrests_today * arrest_rate
 	var food_cost := randi_range(10, 16)

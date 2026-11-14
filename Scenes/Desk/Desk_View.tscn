@@ -6,6 +6,8 @@
 [ext_resource type="FontFile" uid="uid://dgwip3ywtyl8t" path="res://Assets/Art/Fonts/monogram-extended.ttf" id="3_mono"]
 [ext_resource type="FontFile" uid="uid://b2c5twfkqaw51" path="res://Assets/Art/Fonts/Silver.ttf" id="4_silver"]
 [ext_resource type="Shader" uid="uid://c16jou1juxyai" path="res://Shaders/honor_vignette.gdshader" id="5_vignette_shader"]
+[ext_resource type="Texture2D" path="res://Assets/Art/Characters/Mago_Plantilla-Interior.png" id="6_mago_interior"]
+[ext_resource type="Texture2D" path="res://Assets/Art/Characters/Mago_Plantilla-Borde.png" id="7_mago_borde"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_book"]
 bg_color = Color(0.42, 0.18, 0.18, 1)
@@ -89,34 +91,41 @@ theme_override_font_sizes/font_size = 16
 text = "Día 1/5  |  01:00  |  $20
 Tamaño de la fila: 4"
 
-[node name="NPCRect" type="ColorRect" parent="." unique_id=1071050630]
+[node name="NPCRect" type="Control" parent="." unique_id=1071050630]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 245.0
-offset_top = 44.0
-offset_right = 325.0
-offset_bottom = 140.0
-color = Color(0.32, 0.43, 0.52, 1)
+offset_left = 253.0
+offset_top = 114.0
+offset_right = 317.0
+offset_bottom = 220.0
 
-[node name="NPCLabel" type="Label" parent="NPCRect" unique_id=564840791]
+[node name="NPCInterior" type="TextureRect" parent="NPCRect"]
 unique_name_in_owner = true
+texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
-theme_override_fonts/font = ExtResource("4_silver")
-theme_override_font_sizes/font_size = 16
-text = "[NPC 1
-80x96]"
-horizontal_alignment = 1
-vertical_alignment = 1
+texture = ExtResource("6_mago_interior")
+stretch_mode = 3
+
+[node name="NPCBorde" type="TextureRect" parent="NPCRect"]
+unique_name_in_owner = true
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("7_mago_borde")
+stretch_mode = 3
 
 [node name="DeskRect" type="ColorRect" parent="." unique_id=1532849781]
 layout_mode = 0
-offset_top = 140.0
+offset_top = 220.0
 offset_right = 570.0
 offset_bottom = 320.0
 color = Color(0.45, 0.3, 0.2, 1)
@@ -127,42 +136,24 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -26.0
-offset_bottom = -6.0
+offset_top = -24.0
+offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.9, 0.82, 0.72, 0.85)
 theme_override_fonts/font = ExtResource("4_silver")
 theme_override_font_sizes/font_size = 16
-text = "[Mesa 570x180]"
+text = "[Mesa 570x100]"
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="BtnBook" type="Button" parent="." unique_id=1936746714]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 30.0
-offset_top = 174.0
-offset_right = 86.0
-offset_bottom = 238.0
-focus_mode = 0
-theme_override_colors/font_color = Color(0.95, 0.9, 0.8, 1)
-theme_override_colors/font_hover_color = Color(1, 0.92, 0.5, 1)
-theme_override_fonts/font = ExtResource("4_silver")
-theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = SubResource("StyleBoxFlat_book")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_book_hover")
-theme_override_styles/hover = SubResource("StyleBoxFlat_book_hover")
-text = "[Libro
-56x64]"
 
 [node name="ItemRect" type="ColorRect" parent="." unique_id=1986333800]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 253.0
-offset_top = 170.0
+offset_top = 236.0
 offset_right = 317.0
-offset_bottom = 234.0
+offset_bottom = 300.0
 color = Color(0.76, 0.58, 0.24, 1)
 
 [node name="ItemLabel" type="Label" parent="ItemRect" unique_id=378206880]
@@ -181,17 +172,17 @@ text = "[Objeto 1
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ActionButtons" type="VBoxContainer" parent="." unique_id=2131861610]
+[node name="ActionButtons" type="HBoxContainer" parent="." unique_id=2131861610]
 layout_mode = 0
-offset_left = 420.0
-offset_top = 168.0
-offset_right = 540.0
-offset_bottom = 252.0
-theme_override_constants/separation = 12
+offset_left = 20.0
+offset_top = 278.0
+offset_right = 180.0
+offset_bottom = 302.0
+theme_override_constants/separation = 8
 
 [node name="BtnCobrar" type="Button" parent="ActionButtons" unique_id=1422085267]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 34)
+custom_minimum_size = Vector2(76, 24)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(0.95, 0.98, 0.95, 1)
@@ -204,7 +195,7 @@ text = "COBRAR"
 
 [node name="BtnArrestar" type="Button" parent="ActionButtons" unique_id=231472565]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 34)
+custom_minimum_size = Vector2(76, 24)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(0.98, 0.92, 0.92, 1)
@@ -214,6 +205,24 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_arrestar")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_arrestar_hover")
 theme_override_styles/hover = SubResource("StyleBoxFlat_arrestar_hover")
 text = "ARRESTAR"
+
+[node name="BtnBook" type="Button" parent="." unique_id=1936746714]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 472.0
+offset_top = 290.0
+offset_right = 528.0
+offset_bottom = 354.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.95, 0.9, 0.8, 1)
+theme_override_colors/font_hover_color = Color(1, 0.92, 0.5, 1)
+theme_override_fonts/font = ExtResource("4_silver")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_book")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_book_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_book_hover")
+text = "[Libro
+56x64]"
 
 [node name="VignetteLayer" type="CanvasLayer" parent="." unique_id=598545738]
 layer = 5
