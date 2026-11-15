@@ -17,6 +17,8 @@
 [ext_resource type="Texture2D" uid="uid://djhp0u6n3tfc8" path="res://Assets/Art/Items/PlantillaLibro_Libro_Interior.png" id="13_libro_int"]
 [ext_resource type="Texture2D" uid="uid://pjtfxysn6sqj" path="res://Assets/Art/Items/PlantillaLibro_Libro_Borde.png" id="14_libro_borde"]
 [ext_resource type="Texture2D" uid="uid://cbk45jqqoqpjb" path="res://Assets/Art/Items/libro-reglas-open.png" id="15_libro_open"]
+[ext_resource type="Script" path="res://Scripts/Desk/pixel_hit_item.gd" id="16_pixel_hit"]
+[ext_resource type="Texture2D" path="res://Assets/Art/Characters/Plantilla_Persona.png" id="17_persona"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_item_lens"]
 shader = ExtResource("9_lens_item_shader")
@@ -47,6 +49,22 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.85, 1, 0.85, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_confiscar"]
+bg_color = Color(0.28, 0.3, 0.34, 0.96)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.58, 0.64, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_confiscar_hover"]
+bg_color = Color(0.38, 0.41, 0.46, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.78, 0.82, 0.88, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_arrestar"]
 bg_color = Color(0.58, 0.18, 0.18, 1)
@@ -106,6 +124,19 @@ offset_top = 8.0
 offset_right = 356.0
 offset_bottom = 220.0
 
+[node name="NPCPersona" type="TextureRect" parent="NPCRect"]
+unique_name_in_owner = true
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("17_persona")
+expand_mode = 1
+stretch_mode = 5
+
 [node name="NPCInterior" type="TextureRect" parent="NPCRect" unique_id=830777390]
 unique_name_in_owner = true
 texture_filter = 1
@@ -119,6 +150,19 @@ texture = ExtResource("6_mago_interior")
 expand_mode = 1
 stretch_mode = 5
 
+[node name="NPCSombreroInterior" type="TextureRect" parent="NPCRect"]
+unique_name_in_owner = true
+visible = false
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
 [node name="NPCBorde" type="TextureRect" parent="NPCRect" unique_id=2108200875]
 unique_name_in_owner = true
 texture_filter = 1
@@ -129,6 +173,19 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("7_mago_borde")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NPCSombreroBorde" type="TextureRect" parent="NPCRect"]
+unique_name_in_owner = true
+visible = false
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 expand_mode = 1
 stretch_mode = 5
 
@@ -148,6 +205,7 @@ offset_top = 222.0
 offset_right = 333.0
 offset_bottom = 318.0
 mouse_default_cursor_shape = 2
+script = ExtResource("16_pixel_hit")
 
 [node name="ItemInterior" type="TextureRect" parent="ItemRect" unique_id=31994483]
 clip_children = 2
@@ -239,15 +297,23 @@ text = "ARRESTAR"
 [node name="BtnBook" type="Button" parent="." unique_id=1936746714]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 416.0
-offset_top = 264.0
-offset_right = 560.0
-offset_bottom = 408.0
+offset_left = 446.0
+offset_top = 276.0
+offset_right = 542.0
+offset_bottom = 318.0
 focus_mode = 0
 mouse_default_cursor_shape = 2
 flat = true
 
-[node name="BookTabInterior" type="TextureRect" parent="BtnBook" unique_id=116307292]
+[node name="BookVisual" type="Control" parent="BtnBook"]
+layout_mode = 0
+offset_left = -72.0
+offset_top = -52.0
+offset_right = 168.0
+offset_bottom = 188.0
+mouse_filter = 2
+
+[node name="BookTabInterior" type="TextureRect" parent="BtnBook/BookVisual" unique_id=116307292]
 self_modulate = Color(0.52, 0.33, 0.2, 1)
 texture_filter = 1
 layout_mode = 1
@@ -261,7 +327,7 @@ texture = ExtResource("13_libro_int")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="BookTabBorde" type="TextureRect" parent="BtnBook" unique_id=138987301]
+[node name="BookTabBorde" type="TextureRect" parent="BtnBook/BookVisual" unique_id=138987301]
 texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
@@ -274,17 +340,18 @@ texture = ExtResource("14_libro_borde")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="BookTabTitle" type="Label" parent="BtnBook" unique_id=1957718038]
+[node name="BookTabTitle" type="Label" parent="BtnBook/BookVisual" unique_id=1957718038]
 layout_mode = 0
-offset_left = 34.0
-offset_top = 32.0
-offset_right = 110.0
-offset_bottom = 58.0
+offset_left = 56.0
+offset_top = 54.0
+offset_right = 184.0
+offset_bottom = 96.0
+mouse_filter = 2
 theme_override_colors/font_color = Color(0.95, 0.8, 0.24, 1)
 theme_override_colors/font_outline_color = Color(0.18, 0.1, 0.04, 1)
 theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("4_silver")
-theme_override_font_sizes/font_size = 16
+theme_override_font_sizes/font_size = 24
 text = "Politicas"
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -303,6 +370,44 @@ mouse_default_cursor_shape = 2
 texture = ExtResource("8_lente_prueba")
 expand_mode = 1
 stretch_mode = 5
+
+[node name="ItemActionPopup" type="VBoxContainer" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+offset_left = 240.0
+offset_top = 180.0
+offset_right = 300.0
+offset_bottom = 212.0
+theme_override_constants/separation = 2
+
+[node name="BtnConfiscar" type="Button" parent="ItemActionPopup"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 15)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.94, 0.95, 0.97, 1)
+theme_override_fonts/font = ExtResource("3_mono")
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_confiscar")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_confiscar_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_confiscar_hover")
+text = "CONFISCAR"
+
+[node name="BtnRobar" type="Button" parent="ItemActionPopup"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(60, 15)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.98, 0.92, 0.92, 1)
+theme_override_fonts/font = ExtResource("3_mono")
+theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_arrestar")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_arrestar_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_arrestar_hover")
+text = "ROBAR"
 
 [node name="VignetteLayer" type="CanvasLayer" parent="." unique_id=598545738]
 layer = 5

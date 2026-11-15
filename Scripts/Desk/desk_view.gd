@@ -14,8 +14,8 @@ const VIGNETTE_RED := Color(0.95, 0.12, 0.12, 0.95)
 
 const NPC_CENTER_X: float = 221.0
 const NPC_EXIT_OFFSET: float = 75.0
-const BOOK_PEEK_Y: float = 264.0
-const BOOK_HOVER_Y: float = 200.0
+const BOOK_PEEK_Y: float = 276.0
+const BOOK_HOVER_Y: float = 248.0
 const ITEM_DEFAULT_POS := Vector2(253.0, 236.0)
 const VIEWPORT_SIZE := Vector2(570.0, 320.0)
 const LENS_GLASS_RADIUS: float = 34.0
@@ -32,6 +32,38 @@ const ITEM_SLOT_POSITIONS: Dictionary = {
 }
 
 const DECORACIONES_SHEET: Texture2D = preload("res://Assets/Art/Items/Decoraciones-Sheet.png")
+const MAGO_INTERIOR_TEX: Texture2D = preload("res://Assets/Art/Characters/Mago_Plantilla-Interior.png")
+const MAGO_BORDE_TEX: Texture2D = preload("res://Assets/Art/Characters/Mago_Plantilla-Borde.png")
+
+const NPC_CLOTHES: Array[Dictionary] = [
+	{
+		"interior": preload("res://Assets/Art/Clothes/R1_Plantilla_Interior.png"),
+		"borde": preload("res://Assets/Art/Clothes/R1_Plantilla_Bordes.png"),
+	},
+	{
+		"interior": preload("res://Assets/Art/Clothes/R2_Plantilla_Interior.png"),
+		"borde": preload("res://Assets/Art/Clothes/R2_Plantilla_Borde.png"),
+	},
+	{
+		"interior": preload("res://Assets/Art/Clothes/R3_Plantilla_Interior.png"),
+		"borde": preload("res://Assets/Art/Clothes/R3_Plantilla_Borde.png"),
+	},
+]
+
+const NPC_HATS: Array[Dictionary] = [
+	{
+		"interior": preload("res://Assets/Art/Clothes/S1_Plantilla_Interior.png"),
+		"borde": preload("res://Assets/Art/Clothes/S1_Plantilla_Bordes.png"),
+	},
+	{
+		"interior": preload("res://Assets/Art/Clothes/S2_Plantilla_Interior.png"),
+		"borde": preload("res://Assets/Art/Clothes/S2_Plantilla_Borde.png"),
+	},
+	{
+		"interior": preload("res://Assets/Art/Clothes/S3_Plantilla_Interior.png"),
+		"borde": preload("res://Assets/Art/Clothes/S3_Plantilla_Borde.png"),
+	},
+]
 
 const ITEM_TEMPLATES: Array[Dictionary] = [
 	{
@@ -94,16 +126,31 @@ var _last_displayed_second: int = -1
 var _save_timer_accum: float = 0.0
 var _dragging_node: Control = null
 var _drag_offset: Vector2 = Vector2.ZERO
-var _item_slots: Array[Dictionary] = []
+var _drag_start_mouse: Vector2 = Vector2.ZERO
+var _drag_moved: bool = false
+var _dragging_item_entry: Dictionary = {}
+var _desk_items: Array[Dictionary] = []
+var _current_npc_items: Array[Dictionary] = []
+var _selected_item: Dictionary = {}
 var _runes: Array[Dictionary] = []
+var _item_lens_shader_mat: ShaderMaterial = null
+var _rune_mask_shader_mat: ShaderMaterial = null
+var _vignette_tween: Tween = null
 var current_book_page: int = 1
 
 @onready var day_progress_label: Label = %DayProgressLabel
 @onready var npc_rect: Control = %NPCRect
+@onready var npc_persona: TextureRect = %NPCPersona
 @onready var npc_interior: TextureRect = %NPCInterior
+@onready var npc_sombrero_interior: TextureRect = %NPCSombreroInterior
+@onready var npc_borde: TextureRect = %NPCBorde
+@onready var npc_sombrero_borde: TextureRect = %NPCSombreroBorde
 @onready var item_rect: Control = %ItemRect
 @onready var rune_label: Label = %RuneLabel
 @onready var magic_lens: TextureRect = %MagicLens
+@onready var item_action_popup: VBoxContainer = %ItemActionPopup
+@onready var btn_confiscar: Button = %BtnConfiscar
+@onready var btn_robar: Button = %BtnRobar
 
 @onready var btn_book: Button = %BtnBook
 @onready var btn_cobrar: Button = %BtnCobrar
@@ -136,7 +183,10 @@ func _ready() -> void:
 	btn_cobrar.pressed.connect(_on_cobrar_pressed)
 	btn_arrestar.pressed.connect(_on_arrestar_pressed)
 
-	magic_lens.gui_input.connect(_on_draggable_gui_input.bind(magic_lens))
+	btn_confiscar.pressed.connect(_on_confiscar_pressed)
+	btn_robar.pressed.connect(_on_robar_pressed)
+
+	magic_lens.gui_input.connect(_on_draggable_gui_input.bind(magic_lens, {}))
 
 	_setup_items()
 	_start_current_day()
@@ -175,63 +225,171 @@ func _exit_tree() -> void:
 		GameManager.current_npc_index = current_npc_index
 		GameManager.arrests_today = arrests_today
 		GameManager.charges_today = charges_today
+		_sync_desk_items_to_save()
 		GameManager.save_game()
 
 func _input(event: InputEvent) -> void:
-	if _dragging_node != null and event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and not event.pressed:
-		_dragging_node = null
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
+		if item_action_popup.visible:
+			var click_pos := get_global_mouse_position()
+			if not item_action_popup.get_global_rect().has_point(click_pos):
+				_hide_item_action_popup()
 
-func _on_draggable_gui_input(event: InputEvent, target: Control) -> void:
+func _on_draggable_gui_input(event: InputEvent, target: Control, item_entry: Dictionary) -> void:
 	if is_day_ending or book_overlay.visible:
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
+			_hide_item_action_popup()
 			_dragging_node = target
-			_drag_offset = target.global_position - get_global_mouse_position()
+			_dragging_item_entry = item_entry
+			_drag_start_mouse = get_global_mouse_position()
+			_drag_moved = false
+			_drag_offset = target.global_position - _drag_start_mouse
 			get_viewport().set_input_as_handled()
 		elif _dragging_node == target:
+			var was_quick_click := not _drag_moved and not item_entry.is_empty()
 			_dragging_node = null
+			_dragging_item_entry = {}
+			if was_quick_click:
+				_open_item_action_popup(item_entry, target)
+			else:
+				_sync_desk_items_to_save()
+				GameManager.save_game()
 			get_viewport().set_input_as_handled()
 	elif event is InputEventMouseMotion and _dragging_node == target:
-		var new_pos := get_global_mouse_position() + _drag_offset
-		new_pos = new_pos.clamp(Vector2.ZERO, VIEWPORT_SIZE - target.size)
-		target.global_position = new_pos
-		_update_magic_lens_shaders()
+		if not _drag_moved and get_global_mouse_position().distance_to(_drag_start_mouse) > 5.0:
+			_drag_moved = true
+		if _drag_moved:
+			var new_pos := get_global_mouse_position() + _drag_offset
+			var max_bounds := VIEWPORT_SIZE if target == magic_lens else Vector2(VIEWPORT_SIZE.x, VIEWPORT_SIZE.y + 16.0)
+			new_pos = new_pos.clamp(Vector2.ZERO, max_bounds - target.size)
+			target.global_position = new_pos
+			_update_magic_lens_shaders()
 		get_viewport().set_input_as_handled()
 
 func _update_magic_lens_shaders() -> void:
 	var lens_center_global := magic_lens.global_position + magic_lens.size * 0.5
-	if not _item_slots.is_empty():
-		var first_interior := _item_slots[0]["interior"] as TextureRect
-		var item_mat := first_interior.material as ShaderMaterial
-		if item_mat:
-			item_mat.set_shader_parameter("lens_center_px", lens_center_global)
-			item_mat.set_shader_parameter("lens_radius_px", LENS_GLASS_RADIUS)
-	var rune_mat := rune_label.material as ShaderMaterial
-	if rune_mat:
-		rune_mat.set_shader_parameter("lens_center_px", lens_center_global)
-		rune_mat.set_shader_parameter("lens_radius_px", LENS_GLASS_RADIUS)
+	if _item_lens_shader_mat:
+		_item_lens_shader_mat.set_shader_parameter("lens_center_px", lens_center_global)
+		_item_lens_shader_mat.set_shader_parameter("lens_radius_px", LENS_GLASS_RADIUS)
+	if _rune_mask_shader_mat:
+		_rune_mask_shader_mat.set_shader_parameter("lens_center_px", lens_center_global)
+		_rune_mask_shader_mat.set_shader_parameter("lens_radius_px", LENS_GLASS_RADIUS)
 
 func _setup_items() -> void:
+	var template_interior := item_rect.get_node("ItemInterior") as TextureRect
+	_item_lens_shader_mat = template_interior.material as ShaderMaterial
+	_rune_mask_shader_mat = rune_label.material as ShaderMaterial
+	item_rect.visible = false
+	item_action_popup.visible = false
+
+func _clear_all_desk_items() -> void:
+	_hide_item_action_popup()
+	for entry in _desk_items:
+		var ctrl := entry["ctrl"] as Control
+		if is_instance_valid(ctrl):
+			ctrl.queue_free()
+	_desk_items.clear()
+	_current_npc_items.clear()
+	_runes.clear()
+
+func _sync_desk_items_to_save() -> void:
+	var arr: Array = []
+	for entry in _desk_items:
+		var ctrl := entry["ctrl"] as Control
+		if not is_instance_valid(ctrl) or entry.get("removing", false):
+			continue
+		arr.append({
+			"type_id": entry["type_id"],
+			"deco": entry["deco"],
+			"is_magic": entry["is_magic"],
+			"x": ctrl.position.x,
+			"y": ctrl.position.y,
+			"from_current_npc": entry in _current_npc_items,
+		})
+	GameManager.desk_items = arr
+
+func _find_template_by_id(type_id: String) -> Dictionary:
+	for tpl in ITEM_TEMPLATES:
+		if tpl["id"] == type_id:
+			return tpl
+	return ITEM_TEMPLATES[0]
+
+func _find_deco_by_name(deco_name: String) -> Dictionary:
+	for d in ITEM_DECORATIONS:
+		if d["name"] == deco_name:
+			return d
+	return ITEM_DECORATIONS[0]
+
+func _spawn_desk_item(type_id: String, deco_name: String, is_magic: bool, pos: Vector2, fade_in: bool = true) -> Dictionary:
+	var ctrl := item_rect.duplicate() as Control
 	var parent_node := item_rect.get_parent()
-	var base_idx := item_rect.get_index()
-	for i in range(MAX_ITEMS_PER_NPC):
-		var slot_ctrl := item_rect if i == 0 else (item_rect.duplicate() as Control)
-		if i > 0:
-			parent_node.add_child(slot_ctrl)
-			parent_node.move_child(slot_ctrl, base_idx + i)
-		slot_ctrl.gui_input.connect(_on_draggable_gui_input.bind(slot_ctrl))
-		var interior := slot_ctrl.get_node("ItemInterior") as TextureRect
-		var borde := slot_ctrl.get_node("ItemBorde") as TextureRect
-		var deco := slot_ctrl.get_node("ItemDecoracion") as TextureRect
-		var first_rune := interior.get_node("RuneLabel") as Label
+	parent_node.add_child(ctrl)
+	parent_node.move_child(ctrl, magic_lens.get_index())
+
+	var tpl := _find_template_by_id(type_id)
+	var deco_info := _find_deco_by_name(deco_name)
+	var interior := ctrl.get_node("ItemInterior") as TextureRect
+	var borde := ctrl.get_node("ItemBorde") as TextureRect
+	var deco := ctrl.get_node("ItemDecoracion") as TextureRect
+	var first_rune := interior.get_node("RuneLabel") as Label
+
+	interior.texture = tpl["interior"]
+	var item_color: Color = deco_info["color"]
+	if type_id == "libro":
+		item_color = item_color.darkened(0.22)
+	elif type_id == "pocion":
+		item_color.a = 0.70
+	interior.self_modulate = item_color
+	borde.texture = tpl["borde"]
+
+	var atlas := AtlasTexture.new()
+	atlas.atlas = DECORACIONES_SHEET
+	var cell: Vector2i = deco_info["cell"]
+	atlas.region = Rect2(cell.x * 16, cell.y * 16, 16, 16)
+	deco.texture = atlas
+	deco.position = tpl["deco_pos"]
+
+	if is_magic:
+		interior.material = _item_lens_shader_mat
+		deco.material = _item_lens_shader_mat
+		first_rune.visible = true
 		first_rune.size = Vector2(14.0, 18.0)
-		_item_slots.append({"ctrl": slot_ctrl, "interior": interior, "borde": borde, "deco": deco})
-		_runes.append({"label": first_rune, "owner": slot_ctrl, "vel": Vector2.ZERO, "dir": 0})
+	else:
+		interior.material = null
+		deco.material = null
+		first_rune.visible = false
+
+	ctrl.position = pos
+	ctrl.visible = true
+	if fade_in:
+		ctrl.modulate.a = 0.0
+		var tween := create_tween()
+		tween.tween_property(ctrl, "modulate:a", 1.0, 0.25)
+
+	var entry := {
+		"ctrl": ctrl,
+		"type_id": type_id,
+		"deco": deco_name,
+		"is_magic": is_magic,
+		"removing": false,
+	}
+	ctrl.gui_input.connect(_on_draggable_gui_input.bind(ctrl, entry))
+	_desk_items.append(entry)
+
+	if is_magic:
+		var r1 := {"label": first_rune, "owner": ctrl, "vel": Vector2.ZERO, "dir": 0}
+		_runes.append(r1)
+		_reset_rune(r1, true)
 		for _r in range(RUNES_PER_ITEM - 1):
 			var lbl := first_rune.duplicate() as Label
 			interior.add_child(lbl)
-			_runes.append({"label": lbl, "owner": slot_ctrl, "vel": Vector2.ZERO, "dir": 0})
+			var r_entry := {"label": lbl, "owner": ctrl, "vel": Vector2.ZERO, "dir": 0}
+			_runes.append(r_entry)
+			_reset_rune(r_entry, true)
+
+	return entry
 
 func _randomize_all_runes() -> void:
 	for entry in _runes:
@@ -281,6 +439,15 @@ func _update_runes(delta: float) -> void:
 			_reset_rune(entry, false)
 
 func _unhandled_input(event: InputEvent) -> void:
+	if get_tree().paused:
+		return
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if not event.pressed and _dragging_node != null:
+			_dragging_node = null
+			_dragging_item_entry = {}
+			_sync_desk_items_to_save()
+			GameManager.save_game()
+			return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE:
 		if not is_day_ending:
 			if book_overlay.visible:
@@ -312,6 +479,17 @@ func _start_current_day() -> void:
 	_last_displayed_second = ceili(time_remaining)
 	_save_timer_accum = 0.0
 	_set_vignette(Color.WHITE, 0.0)
+	magic_lens.visible = GameManager.current_day >= 2
+	_hide_item_action_popup()
+	_clear_all_desk_items()
+
+	for d in GameManager.desk_items:
+		if d is Dictionary:
+			var pos := Vector2(float(d.get("x", 160.0)), float(d.get("y", 190.0)))
+			var entry := _spawn_desk_item(str(d.get("type_id", "libro")), str(d.get("deco", "corona")), bool(d.get("is_magic", false)), pos, false)
+			if bool(d.get("from_current_npc", false)):
+				_current_npc_items.append(entry)
+
 	_update_day_progress_label()
 	_update_book_page_ui()
 
@@ -319,29 +497,67 @@ func _start_current_day() -> void:
 		_show_day_summary(false)
 	elif time_remaining <= 0.0:
 		_show_day_summary(true)
-	else:
+	elif _current_npc_items.is_empty():
 		_spawn_current_npc()
+	else:
+		is_transitioning = false
+		_set_actions_enabled(true)
+		_randomize_npc_appearance()
+		npc_rect.position.x = NPC_CENTER_X
+		npc_rect.modulate.a = 1.0
+		_update_magic_lens_shaders()
 
 func _update_day_progress_label() -> void:
 	var sec := maxi(ceili(time_remaining), 0)
 	var mins := floori(sec / 60.0)
 	var rem_sec := sec % 60
 	var remaining_npcs := maxi(total_npcs - current_npc_index, 0)
-	day_progress_label.text = "Día %d/%d  |  %02d:%02d  |  $%d\nTamaño de la fila: %d" % [
+	day_progress_label.text = "Día %d/%d  |  %02d:%02d  |  $%d\nTamaño de la fila: %d  |  Honor: %d" % [
 		GameManager.current_day,
 		GameManagerClass.MAX_DAYS,
 		mins,
 		rem_sec,
 		GameManager.money,
 		remaining_npcs,
+		GameManager.honor,
 	]
+
+func _randomize_npc_appearance() -> void:
+	var is_wizard := randf() < 0.5
+	var outfit_color: Color = WIZARD_COLORS.pick_random()
+	if is_wizard:
+		npc_persona.visible = false
+		npc_interior.texture = MAGO_INTERIOR_TEX
+		npc_interior.modulate = outfit_color
+		npc_interior.visible = true
+		npc_borde.texture = MAGO_BORDE_TEX
+		npc_borde.visible = true
+		npc_sombrero_interior.visible = false
+		npc_sombrero_borde.visible = false
+	else:
+		var ropa: Dictionary = NPC_CLOTHES.pick_random()
+		var sombrero: Dictionary = NPC_HATS.pick_random()
+		npc_persona.visible = true
+		npc_persona.modulate = Color.WHITE
+		npc_interior.texture = ropa["interior"]
+		npc_interior.modulate = outfit_color
+		npc_interior.visible = true
+		npc_sombrero_interior.texture = sombrero["interior"]
+		npc_sombrero_interior.modulate = outfit_color
+		npc_sombrero_interior.visible = true
+		npc_borde.texture = ropa["borde"]
+		npc_borde.visible = true
+		npc_sombrero_borde.texture = sombrero["borde"]
+		npc_sombrero_borde.visible = true
 
 func _spawn_current_npc() -> void:
 	is_transitioning = false
 	_set_actions_enabled(true)
+	_hide_item_action_popup()
+	_current_npc_items.clear()
 	_update_day_progress_label()
 
-	npc_interior.modulate = WIZARD_COLORS.pick_random()
+	_randomize_npc_appearance()
 
 	npc_rect.position.x = NPC_CENTER_X
 	npc_rect.modulate.a = 0.0
@@ -351,86 +567,77 @@ func _spawn_current_npc() -> void:
 
 	var item_count := randi_range(1, MAX_ITEMS_PER_NPC)
 	var slot_positions: Array = ITEM_SLOT_POSITIONS[item_count]
-	for i in range(_item_slots.size()):
-		var slot := _item_slots[i]
-		var ctrl := slot["ctrl"] as Control
-		if i < item_count:
-			var tpl: Dictionary = ITEM_TEMPLATES.pick_random()
-			var deco_info: Dictionary = ITEM_DECORATIONS.pick_random()
-			var interior := slot["interior"] as TextureRect
-			var borde := slot["borde"] as TextureRect
-			var deco := slot["deco"] as TextureRect
-			interior.texture = tpl["interior"]
-			var item_color: Color = deco_info["color"]
-			if tpl["id"] == "libro":
-				item_color = item_color.darkened(0.22)
-			elif tpl["id"] == "pocion":
-				item_color.a = 0.70
-			interior.self_modulate = item_color
-			borde.texture = tpl["borde"]
-			var atlas := AtlasTexture.new()
-			atlas.atlas = DECORACIONES_SHEET
-			var cell: Vector2i = deco_info["cell"]
-			atlas.region = Rect2(cell.x * 16, cell.y * 16, 16, 16)
-			deco.texture = atlas
-			deco.position = tpl["deco_pos"]
-			ctrl.visible = true
-			ctrl.position = slot_positions[i]
-			ctrl.modulate.a = 0.0
-			tween.tween_property(ctrl, "modulate:a", 1.0, 0.25)
-		else:
-			ctrl.visible = false
+	for i in range(item_count):
+		var tpl: Dictionary = ITEM_TEMPLATES.pick_random()
+		var deco_info: Dictionary = ITEM_DECORATIONS.pick_random()
+		var is_magic := (GameManager.current_day >= 2) and (randf() < 0.45)
+		var entry := _spawn_desk_item(str(tpl["id"]), str(deco_info["name"]), is_magic, slot_positions[i], true)
+		_current_npc_items.append(entry)
 
-	_randomize_all_runes()
+	_sync_desk_items_to_save()
 	_update_magic_lens_shaders()
+	GameManager.save_game()
 
 func _on_cobrar_pressed() -> void:
 	if is_transitioning or is_day_ending:
 		return
+	var has_prohibited := _has_prohibited_npc_item()
+	var honor_delta := -10 if has_prohibited else 5
 	charges_today += 1
 	current_npc_index += 1
 	GameManager.charges_today = charges_today
 	GameManager.current_npc_index = current_npc_index
 	GameManager.total_charged += 1
 	GameManager.day_time_remaining = time_remaining
-	GameManager.save_game()
-	AudioManager.play_sfx(CAMPANA_PEQUE_SFX)
-	_resolve_npc(NPC_EXIT_OFFSET, VIGNETTE_WHITE)
+	_apply_honor_change(honor_delta, false)
+	_resolve_npc(NPC_EXIT_OFFSET, true)
 
 func _on_arrestar_pressed() -> void:
 	if is_transitioning or is_day_ending:
 		return
+	var has_prohibited := _has_prohibited_npc_item()
+	var honor_delta := 8 if has_prohibited else -12
 	arrests_today += 1
 	current_npc_index += 1
 	GameManager.arrests_today = arrests_today
 	GameManager.current_npc_index = current_npc_index
 	GameManager.total_arrested += 1
 	GameManager.day_time_remaining = time_remaining
+	_apply_honor_change(honor_delta, true)
 	GameManager.save_game()
-	AudioManager.play_sfx(CAMPANA_GRANDE_SFX)
-	AudioManager.play_sfx(BAG_OF_COINS_SFX)
-	_resolve_npc(-NPC_EXIT_OFFSET, VIGNETTE_RED)
+	_resolve_npc(-NPC_EXIT_OFFSET, false)
 
-func _resolve_npc(exit_offset_x: float, vignette_color: Color) -> void:
+func _resolve_npc(exit_offset_x: float, clear_npc_items: bool) -> void:
 	is_transitioning = true
 	_set_actions_enabled(false)
+	_hide_item_action_popup()
 
-	var mat := vignette_rect.material as ShaderMaterial
-	if mat:
-		mat.set_shader_parameter("vignette_color", vignette_color)
-		mat.set_shader_parameter("intensity", 0.9)
+	var items_to_free: Array[Control] = []
+	if clear_npc_items:
+		for entry in _current_npc_items:
+			_desk_items.erase(entry)
+			var ctrl := entry.get("ctrl") as Control
+			if is_instance_valid(ctrl):
+				ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				items_to_free.append(ctrl)
+				for i in range(_runes.size() - 1, -1, -1):
+					if _runes[i].get("owner") == ctrl:
+						_runes.remove_at(i)
+		_current_npc_items.clear()
+		_sync_desk_items_to_save()
+	GameManager.save_game()
 
 	var tween := create_tween().set_parallel(true)
 	tween.tween_property(npc_rect, "position:x", NPC_CENTER_X + exit_offset_x, 0.65).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(npc_rect, "modulate:a", 0.0, 0.65).set_ease(Tween.EASE_IN)
-	for slot in _item_slots:
-		var ctrl := slot["ctrl"] as Control
-		if ctrl.visible:
-			tween.tween_property(ctrl, "modulate:a", 0.0, 0.35)
-	if mat:
-		tween.tween_method(_set_vignette_intensity, 0.9, 0.0, 0.65).set_ease(Tween.EASE_IN)
+	for ctrl in items_to_free:
+		tween.tween_property(ctrl, "modulate:a", 0.0, 0.35).set_ease(Tween.EASE_IN)
 
 	await tween.finished
+
+	for ctrl in items_to_free:
+		if is_instance_valid(ctrl):
+			ctrl.queue_free()
 
 	if is_day_ending:
 		return
@@ -440,6 +647,142 @@ func _resolve_npc(exit_offset_x: float, vignette_color: Color) -> void:
 	else:
 		is_day_ending = true
 		_show_day_summary(false)
+
+func _open_item_action_popup(entry: Dictionary, ctrl: Control) -> void:
+	if is_day_ending:
+		return
+	var click_pos := get_global_mouse_position()
+	_selected_item = entry
+	btn_robar.visible = GameManager.current_day >= 3
+	item_action_popup.visible = true
+	await get_tree().process_frame
+	if not is_instance_valid(ctrl) or not is_instance_valid(item_action_popup) or is_day_ending:
+		_hide_item_action_popup()
+		return
+	var popup_size := item_action_popup.size
+	var target_pos := Vector2(
+		click_pos.x - popup_size.x * 0.5,
+		click_pos.y - popup_size.y - 2.0
+	)
+	target_pos.x = clampf(target_pos.x, 4.0, VIEWPORT_SIZE.x - popup_size.x - 4.0)
+	target_pos.y = clampf(target_pos.y, 4.0, VIEWPORT_SIZE.y - popup_size.y - 4.0)
+	item_action_popup.position = target_pos
+
+func _hide_item_action_popup() -> void:
+	_selected_item = {}
+	if is_instance_valid(item_action_popup):
+		item_action_popup.visible = false
+
+func _on_confiscar_pressed() -> void:
+	if _selected_item.is_empty() or bool(_selected_item.get("removing", false)):
+		_hide_item_action_popup()
+		return
+	var entry := _selected_item
+	_hide_item_action_popup()
+	var prohibited := _is_item_prohibited(str(entry["type_id"]), str(entry["deco"]), bool(entry["is_magic"]))
+	if prohibited:
+		_apply_honor_change(6, false)
+	_remove_desk_item_animated(entry, true)
+
+func _on_robar_pressed() -> void:
+	if GameManager.current_day < 3 or _selected_item.is_empty() or bool(_selected_item.get("removing", false)):
+		_hide_item_action_popup()
+		return
+	var entry := _selected_item
+	_hide_item_action_popup()
+	var type_id := str(entry["type_id"])
+	var deco := str(entry["deco"])
+	var honor_loss := -8
+	var item_value := randi_range(3, 5)
+	if type_id == "escudo" or deco in ["gema", "esmeralda", "moneda"]:
+		honor_loss = -12
+		item_value = randi_range(6, 10)
+	elif type_id == "pocion":
+		honor_loss = -5
+		item_value = randi_range(1, 3)
+
+	GameManager.stolen_value_today += item_value
+	GameManager.stolen_count_today += 1
+	_apply_honor_change(honor_loss, false)
+	_remove_desk_item_animated(entry, false)
+
+func _remove_desk_item_animated(entry: Dictionary, to_right: bool) -> void:
+	entry["removing"] = true
+	_desk_items.erase(entry)
+	_current_npc_items.erase(entry)
+	_sync_desk_items_to_save()
+	GameManager.save_game()
+
+	var ctrl := entry["ctrl"] as Control
+	for i in range(_runes.size() - 1, -1, -1):
+		if _runes[i].get("owner") == ctrl:
+			_runes.remove_at(i)
+
+	if not is_instance_valid(ctrl):
+		return
+	ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var tween := create_tween().set_parallel(true)
+	if to_right:
+		tween.tween_property(ctrl, "position:x", 580.0, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	else:
+		tween.tween_property(ctrl, "position:y", 330.0, 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.tween_property(ctrl, "modulate:a", 0.0, 0.35).set_ease(Tween.EASE_IN)
+	await tween.finished
+	if is_instance_valid(ctrl):
+		ctrl.queue_free()
+
+func _flash_vignette(color: Color) -> void:
+	var mat := vignette_rect.material as ShaderMaterial
+	if not mat:
+		return
+	if _vignette_tween and _vignette_tween.is_valid():
+		_vignette_tween.kill()
+	mat.set_shader_parameter("vignette_color", color)
+	mat.set_shader_parameter("intensity", 0.9)
+	_vignette_tween = create_tween()
+	_vignette_tween.tween_method(_set_vignette_intensity, 0.9, 0.0, 0.65).set_ease(Tween.EASE_IN)
+
+func _apply_honor_change(delta: int, play_coins: bool) -> void:
+	if delta > 0:
+		GameManager.honor = clampi(GameManager.honor + delta, -100, 100)
+		AudioManager.play_sfx(CAMPANA_PEQUE_SFX)
+		_flash_vignette(VIGNETTE_WHITE)
+	elif delta < 0:
+		GameManager.honor = clampi(GameManager.honor + delta, -100, 100)
+		AudioManager.play_sfx(CAMPANA_GRANDE_SFX)
+		_flash_vignette(VIGNETTE_RED)
+	if play_coins:
+		AudioManager.play_sfx(BAG_OF_COINS_SFX)
+	_update_day_progress_label()
+
+func _is_item_prohibited(type_id: String, deco: String, is_magic: bool) -> bool:
+	match GameManager.current_day:
+		1:
+			if deco in ["corona", "esmeralda", "moneda"]:
+				return type_id != "pocion"
+			return false
+		2:
+			if deco in ["espada", "fuego", "calavera", "ojo"]:
+				return type_id != "libro"
+			return false
+		3:
+			if deco in ["gema", "moneda"]:
+				return not is_magic
+			return false
+		4:
+			if type_id == "escudo" or deco == "calavera":
+				return deco != "fuego"
+			return false
+		5:
+			var is_sacred := deco in ["luna", "corona", "gema"]
+			return not (is_sacred and not is_magic)
+	return false
+
+func _has_prohibited_npc_item() -> bool:
+	for entry in _current_npc_items:
+		if _is_item_prohibited(str(entry["type_id"]), str(entry["deco"]), bool(entry["is_magic"])):
+			return true
+	return false
 
 func _set_vignette(color: Color, intensity: float) -> void:
 	var mat := vignette_rect.material as ShaderMaterial
@@ -608,7 +951,7 @@ func _populate_book_categories_page(page: VBoxContainer) -> void:
 
 func _populate_book_day_page(page: VBoxContainer, day: int) -> void:
 	page.add_theme_constant_override("separation", 6)
-	var reward_line := "Pago por arresto: 4-7 monedas"
+	var reward_line := "Pago por arresto: %d monedas" % GameManager.get_arrest_reward_for_day(day)
 	if day == GameManager.current_day:
 		reward_line = "Pago por arresto hoy: %d monedas" % GameManager.arrest_reward_today
 
@@ -629,7 +972,7 @@ func _populate_book_day_page(page: VBoxContainer, day: int) -> void:
 				_colored_tag("Druida ", "#157524"), Vector2i(1, 2), ", ",
 				_colored_tag("Económicos ", "#997a00"), Vector2i(2, 2),
 				"] no pueden pasar, a no ser que sean [Consumibles ", pocion_icon,
-				"] o [%s (Lente)]. Todo lo demás, pasa." % magic_tag,
+				"]. Todo lo demás, pasa.",
 			])
 		2:
 			_append_book_tokens(rtl, [
@@ -645,9 +988,9 @@ func _populate_book_day_page(page: VBoxContainer, day: int) -> void:
 			])
 		4:
 			_append_book_tokens(rtl, [
-				"Prohibidas las [", _colored_tag("Armas ", "#4f5b66"), escudo_icon,
-				"] y objetos de [", _colored_tag("Brujo ", "#5a5a5a"), Vector2i(1, 0),
-				"], excepto si llevan ", Vector2i(2, 1), ". Todo lo demás, pasa.",
+				"Prohibidos los objetos de [", _colored_tag("Brujo ", "#5a5a5a"), Vector2i(1, 0),
+				"] y las [", _colored_tag("Armas ", "#4f5b66"), escudo_icon,
+				"] (excepto si llevan ", Vector2i(2, 1), "). Todo lo demás, pasa.",
 			])
 		5:
 			_append_book_tokens(rtl, [
@@ -664,6 +1007,18 @@ func _on_book_backdrop_gui_input(event: InputEvent) -> void:
 
 func _show_day_summary(timed_out: bool = false) -> void:
 	is_day_ending = true
+	var auto_confiscated_honor := 0
+	for entry in _desk_items:
+		if bool(entry.get("removing", false)) or (entry in _current_npc_items):
+			continue
+		if _is_item_prohibited(str(entry["type_id"]), str(entry["deco"]), bool(entry["is_magic"])):
+			auto_confiscated_honor += 6
+	if auto_confiscated_honor > 0:
+		GameManager.honor = clampi(GameManager.honor + auto_confiscated_honor, -100, 100)
+		_update_day_progress_label()
+
+	_clear_all_desk_items()
+	GameManager.desk_items = []
 	GameManager.last_day_timed_out = timed_out
 	GameManager.arrests_today = arrests_today
 	GameManager.charges_today = charges_today

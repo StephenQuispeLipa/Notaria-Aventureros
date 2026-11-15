@@ -93,7 +93,9 @@ static func calculate_day_finances(prev_money: int, day: int, arrests: int, time
 			event_cost += cost
 			event_lines.append("[color=#8a1c1c]- %s: -%d[/color]" % [ev["name"], cost])
 
-	var day_income := salary + arrest_bonus
+	var stolen_bonus: int = GameManager.stolen_value_today
+	var stolen_count: int = GameManager.stolen_count_today
+	var day_income := salary + arrest_bonus + stolen_bonus
 	var day_expenses := food_cost + event_cost
 	var new_money := prev_money + day_income - day_expenses
 
@@ -105,11 +107,13 @@ static func calculate_day_finances(prev_money: int, day: int, arrests: int, time
 		"Oro inicial: $%d" % prev_money,
 		salary_line,
 		"[color=#1e6b2c]+ Bono arresto: +%d (%dx$%d)[/color]" % [arrest_bonus, arrests, arrest_rate],
-		"[color=#8a1c1c]- Comida y sustento: -%d[/color]" % food_cost,
 	]
+	if stolen_count > 0:
+		lines.append("[color=#1e6b2c]+ Venta robados: +%d (%d obj.)[/color]" % [stolen_bonus, stolen_count])
+	lines.append("[color=#8a1c1c]- Comida y sustento: -%d[/color]" % food_cost)
 	lines.append_array(event_lines)
 	lines.append("----------------")
-	lines.append("[color=#1a386b]Oro resultante: $%d[/color]" % maxi(new_money, 0))
+	lines.append("[color=#1a386b]Oro resultante: $%d | Honor: %d[/color]" % [maxi(new_money, 0), GameManager.honor])
 
 	var is_game_over := new_money <= 0
 	var is_game_win := not is_game_over and day >= GameManagerClass.MAX_DAYS

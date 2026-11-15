@@ -54,6 +54,10 @@ func _ready() -> void:
 	btn_confirm_exit.pressed.connect(_on_confirm_exit_pressed)
 	btn_cancel_exit.pressed.connect(_show_pause_buttons)
 
+	for btn in [btn_menu, btn_resume, btn_options, btn_exit, btn_back_from_options, btn_confirm_exit, btn_cancel_exit, btn_fullscreen]:
+		if btn:
+			btn.focus_mode = Control.FOCUS_NONE
+
 	close_menu(false)
 
 func _setup_audio_buses() -> void:
@@ -150,6 +154,9 @@ func close_menu(play_sound: bool = true) -> void:
 	is_open = false
 	dimmer.visible = false
 	parchment_center.visible = false
+	var focused := get_viewport().gui_get_focus_owner()
+	if focused:
+		focused.release_focus()
 	get_tree().paused = false
 	if play_sound and audio_close:
 		audio_close.play()
