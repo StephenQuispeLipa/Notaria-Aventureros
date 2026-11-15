@@ -20,7 +20,43 @@ const ITEM_DEFAULT_POS := Vector2(253.0, 236.0)
 const VIEWPORT_SIZE := Vector2(570.0, 320.0)
 const LENS_GLASS_RADIUS: float = 28.0
 const RUNE_ALPHABET := "abcdefghijklmnopqrstuvwxyz"
-const RUNE_COUNT := 10
+const RUNES_PER_ITEM := 10
+const MAX_ITEMS_PER_NPC := 3
+
+const ITEM_SLOT_POSITIONS: Dictionary = {
+	1: [Vector2(282.0, 222.0)],
+	2: [Vector2(224.0, 222.0), Vector2(336.0, 222.0)],
+	3: [Vector2(180.0, 222.0), Vector2(282.0, 222.0), Vector2(384.0, 222.0)],
+}
+
+const DECORACIONES_SHEET: Texture2D = preload("res://Assets/Art/Items/Decoraciones-Sheet.png")
+
+const ITEM_TEMPLATES: Array[Dictionary] = [
+	{
+		"id": "escudo",
+		"interior": preload("res://Assets/Art/Items/PlantillaEscudo_Interior.png"),
+		"borde": preload("res://Assets/Art/Items/PlantillaEscudo_Borde.png"),
+		"deco_pos": Vector2(32.0, 28.0),
+	},
+	{
+		"id": "libro",
+		"interior": preload("res://Assets/Art/Items/PlantillaLibro_Libro_Interior.png"),
+		"borde": preload("res://Assets/Art/Items/PlantillaLibro_Libro_Borde.png"),
+		"deco_pos": Vector2(35.0, 22.0),
+	},
+]
+
+const ITEM_DECORATIONS: Array[Dictionary] = [
+	{"name": "corona", "cell": Vector2i(0, 0), "color": Color(0.95, 0.89, 0.74, 1.0)},    # Crema
+	{"name": "calavera", "cell": Vector2i(1, 0), "color": Color(0.55, 0.14, 0.16, 1.0)},  # Rojo oscuro
+	{"name": "luna", "cell": Vector2i(2, 0), "color": Color(0.16, 0.24, 0.52, 1.0)},      # Azul oscuro
+	{"name": "ojo", "cell": Vector2i(0, 1), "color": Color(0.14, 0.14, 0.17, 1.0)},       # Negro
+	{"name": "espada", "cell": Vector2i(1, 1), "color": Color(0.52, 0.33, 0.20, 1.0)},    # Café
+	{"name": "fuego", "cell": Vector2i(2, 1), "color": Color(0.52, 0.54, 0.58, 1.0)},     # Gris
+	{"name": "gema", "cell": Vector2i(0, 2), "color": Color(0.52, 0.22, 0.72, 1.0)},      # Púrpura
+	{"name": "esmeralda", "cell": Vector2i(1, 2), "color": Color(0.15, 0.45, 0.22, 1.0)}, # Verde oscuro
+	{"name": "moneda", "cell": Vector2i(2, 2), "color": Color(0.78, 0.82, 0.88, 1.0)},    # Plateado
+]
 
 const RUNE_FONTS: Array[Font] = [
 	preload("res://Assets/Art/Fonts/Silver.ttf"),
@@ -58,13 +94,13 @@ var _last_displayed_second: int = -1
 var _save_timer_accum: float = 0.0
 var _dragging_node: Control = null
 var _drag_offset: Vector2 = Vector2.ZERO
+var _item_slots: Array[Dictionary] = []
 var _runes: Array[Dictionary] = []
 
 @onready var day_progress_label: Label = %DayProgressLabel
 @onready var npc_rect: Control = %NPCRect
 @onready var npc_interior: TextureRect = %NPCInterior
-@onready var item_rect: ColorRect = %ItemRect
-@onready var item_label: Label = %ItemLabel
+@onready var item_rect: Control = %ItemRect
 @onready var rune_label: Label = %RuneLabel
 @onready var magic_lens: TextureRect = %MagicLens
 
@@ -104,10 +140,9 @@ func _ready() -> void:
 	btn_restart_day.pressed.connect(_on_restart_game_pressed)
 	btn_back_menu.pressed.connect(_on_back_menu_pressed)
 
-	item_rect.gui_input.connect(_on_draggable_gui_input.bind(item_rect))
 	magic_lens.gui_input.connect(_on_draggable_gui_input.bind(magic_lens))
 
-	_setup_runes()
+	_setup_items()
 	_start_current_day()
 
 func _process(delta: float) -> void:
@@ -170,22 +205,37 @@ func _on_draggable_gui_input(event: InputEvent, target: Control) -> void:
 
 func _update_magic_lens_shaders() -> void:
 	var lens_center_global := magic_lens.global_position + magic_lens.size * 0.5
-	var item_mat := item_rect.material as ShaderMaterial
-	if item_mat:
-		item_mat.set_shader_parameter("lens_center_px", lens_center_global - item_rect.global_position)
-		item_mat.set_shader_parameter("lens_radius_px", LENS_GLASS_RADIUS)
+	if not _item_slots.is_empty():
+		var first_interior := _item_slots[0]["interior"] as TextureRect
+		var item_mat := first_interior.material as ShaderMaterial
+		if item_mat:
+			item_mat.set_shader_parameter("lens_center_px", lens_center_global)
+			item_mat.set_shader_parameter("lens_radius_px", LENS_GLASS_RADIUS)
 	var rune_mat := rune_label.material as ShaderMaterial
 	if rune_mat:
 		rune_mat.set_shader_parameter("lens_center_px", lens_center_global)
 		rune_mat.set_shader_parameter("lens_radius_px", LENS_GLASS_RADIUS)
 
-func _setup_runes() -> void:
-	rune_label.size = Vector2(14.0, 18.0)
-	_runes.append({"label": rune_label, "vel": Vector2.ZERO, "dir": 0})
-	for _i in range(RUNE_COUNT - 1):
-		var lbl := rune_label.duplicate() as Label
-		item_rect.add_child(lbl)
-		_runes.append({"label": lbl, "vel": Vector2.ZERO, "dir": 0})
+func _setup_items() -> void:
+	var parent_node := item_rect.get_parent()
+	var base_idx := item_rect.get_index()
+	for i in range(MAX_ITEMS_PER_NPC):
+		var slot_ctrl := item_rect if i == 0 else (item_rect.duplicate() as Control)
+		if i > 0:
+			parent_node.add_child(slot_ctrl)
+			parent_node.move_child(slot_ctrl, base_idx + i)
+		slot_ctrl.gui_input.connect(_on_draggable_gui_input.bind(slot_ctrl))
+		var interior := slot_ctrl.get_node("ItemInterior") as TextureRect
+		var borde := slot_ctrl.get_node("ItemBorde") as TextureRect
+		var deco := slot_ctrl.get_node("ItemDecoracion") as TextureRect
+		var first_rune := interior.get_node("RuneLabel") as Label
+		first_rune.size = Vector2(14.0, 18.0)
+		_item_slots.append({"ctrl": slot_ctrl, "interior": interior, "borde": borde, "deco": deco})
+		_runes.append({"label": first_rune, "owner": slot_ctrl, "vel": Vector2.ZERO, "dir": 0})
+		for _r in range(RUNES_PER_ITEM - 1):
+			var lbl := first_rune.duplicate() as Label
+			interior.add_child(lbl)
+			_runes.append({"label": lbl, "owner": slot_ctrl, "vel": Vector2.ZERO, "dir": 0})
 
 func _randomize_all_runes() -> void:
 	for entry in _runes:
@@ -193,13 +243,14 @@ func _randomize_all_runes() -> void:
 
 func _reset_rune(entry: Dictionary, random_along_axis: bool) -> void:
 	var lbl := entry["label"] as Label
+	var owner_ctrl := entry["owner"] as Control
 	lbl.text = RUNE_ALPHABET[randi() % RUNE_ALPHABET.length()]
 	lbl.add_theme_font_override("font", RUNE_FONTS.pick_random())
 
 	var dir := randi() % 4
-	var speed := randf_range(18.0, 36.0)
-	var item_w := item_rect.size.x
-	var item_h := item_rect.size.y
+	var speed := randf_range(54.0, 108.0)
+	var item_w := owner_ctrl.size.x
+	var item_h := owner_ctrl.size.y
 	entry["dir"] = dir
 
 	match dir:
@@ -217,12 +268,15 @@ func _reset_rune(entry: Dictionary, random_along_axis: bool) -> void:
 			lbl.position = Vector2(randf_range(2.0, item_w - 14.0), randf_range(0.0, item_h + 16.0) if random_along_axis else item_h + 2.0)
 
 func _update_runes(delta: float) -> void:
-	var item_w := item_rect.size.x
-	var item_h := item_rect.size.y
 	for entry in _runes:
+		var owner_ctrl := entry["owner"] as Control
+		if not owner_ctrl.visible:
+			continue
 		var lbl := entry["label"] as Label
 		var vel: Vector2 = entry["vel"]
 		var dir: int = entry["dir"]
+		var item_w := owner_ctrl.size.x
+		var item_h := owner_ctrl.size.y
 		lbl.position += vel * delta
 		if (dir == 0 and lbl.position.x > item_w + 4.0) \
 			or (dir == 1 and lbl.position.x < -14.0) \
@@ -290,20 +344,43 @@ func _spawn_current_npc() -> void:
 	_set_actions_enabled(true)
 	_update_day_progress_label()
 
-	var display_num := current_npc_index + 1
 	npc_interior.modulate = WIZARD_COLORS.pick_random()
-	item_label.text = "[Objeto %d\n64x64]" % display_num
-	item_rect.position = ITEM_DEFAULT_POS
-	_randomize_all_runes()
-	_update_magic_lens_shaders()
 
 	npc_rect.position.x = NPC_CENTER_X
 	npc_rect.modulate.a = 0.0
-	item_rect.modulate.a = 0.0
 
 	var tween := create_tween().set_parallel(true)
 	tween.tween_property(npc_rect, "modulate:a", 1.0, 0.25)
-	tween.tween_property(item_rect, "modulate:a", 1.0, 0.25)
+
+	var item_count := randi_range(1, MAX_ITEMS_PER_NPC)
+	var slot_positions: Array = ITEM_SLOT_POSITIONS[item_count]
+	for i in range(_item_slots.size()):
+		var slot := _item_slots[i]
+		var ctrl := slot["ctrl"] as Control
+		if i < item_count:
+			var tpl: Dictionary = ITEM_TEMPLATES.pick_random()
+			var deco_info: Dictionary = ITEM_DECORATIONS.pick_random()
+			var interior := slot["interior"] as TextureRect
+			var borde := slot["borde"] as TextureRect
+			var deco := slot["deco"] as TextureRect
+			interior.texture = tpl["interior"]
+			interior.self_modulate = deco_info["color"]
+			borde.texture = tpl["borde"]
+			var atlas := AtlasTexture.new()
+			atlas.atlas = DECORACIONES_SHEET
+			var cell: Vector2i = deco_info["cell"]
+			atlas.region = Rect2(cell.x * 16, cell.y * 16, 16, 16)
+			deco.texture = atlas
+			deco.position = tpl["deco_pos"]
+			ctrl.visible = true
+			ctrl.position = slot_positions[i]
+			ctrl.modulate.a = 0.0
+			tween.tween_property(ctrl, "modulate:a", 1.0, 0.25)
+		else:
+			ctrl.visible = false
+
+	_randomize_all_runes()
+	_update_magic_lens_shaders()
 
 func _on_cobrar_pressed() -> void:
 	if is_transitioning or is_day_ending:
@@ -344,7 +421,10 @@ func _resolve_npc(exit_offset_x: float, vignette_color: Color) -> void:
 	var tween := create_tween().set_parallel(true)
 	tween.tween_property(npc_rect, "position:x", NPC_CENTER_X + exit_offset_x, 0.65).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(npc_rect, "modulate:a", 0.0, 0.65).set_ease(Tween.EASE_IN)
-	tween.tween_property(item_rect, "modulate:a", 0.0, 0.35)
+	for slot in _item_slots:
+		var ctrl := slot["ctrl"] as Control
+		if ctrl.visible:
+			tween.tween_property(ctrl, "modulate:a", 0.0, 0.35)
 	if mat:
 		tween.tween_method(_set_vignette_intensity, 0.9, 0.0, 0.65).set_ease(Tween.EASE_IN)
 
