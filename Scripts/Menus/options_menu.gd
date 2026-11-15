@@ -60,6 +60,7 @@ func _ready() -> void:
 
 	_setup_audio_buses()
 	_update_fullscreen_button()
+	_update_continue_button()
 
 	slider_master.value_changed.connect(_on_master_changed)
 	slider_bgm.value_changed.connect(_on_bgm_changed)
@@ -152,7 +153,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		close_parchment()
 		get_viewport().set_input_as_handled()
 
+func _update_continue_button() -> void:
+	var has_save := GameManager.has_save()
+	sign_continuar.disabled = not has_save
+	sign_continuar.modulate = Color.WHITE if has_save else Color(0.55, 0.55, 0.55, 0.7)
+
 func _on_sign_mouse_entered(btn: TextureButton) -> void:
+	if btn.disabled:
+		return
 	var label := btn.get_node_or_null("Label") as Label
 	if label:
 		label.add_theme_color_override("font_color", SIGN_HOVER_COLOR)
@@ -165,14 +173,18 @@ func _on_sign_mouse_exited(btn: TextureButton) -> void:
 
 func _on_jugar_pressed() -> void:
 	AudioManager.play_sfx(PLAY_SFX)
+	GameManager.start_new_game()
 	if scroll_panel.visible:
 		close_parchment()
 	get_tree().change_scene_to_file("res://Scenes/Desk/Desk_View.tscn")
 
 func _on_continuar_pressed() -> void:
+	if not GameManager.load_game():
+		return
 	AudioManager.play_sfx(PLAY_SFX)
 	if scroll_panel.visible:
 		close_parchment()
+	get_tree().change_scene_to_file("res://Scenes/Desk/Desk_View.tscn")
 
 func _on_opciones_pressed() -> void:
 	if current_mode == PanelMode.OPTIONS and scroll_panel.visible:

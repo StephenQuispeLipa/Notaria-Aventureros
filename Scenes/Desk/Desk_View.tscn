@@ -6,6 +6,11 @@
 [ext_resource type="FontFile" uid="uid://dgwip3ywtyl8t" path="res://Assets/Art/Fonts/monogram-extended.ttf" id="3_mono"]
 [ext_resource type="FontFile" uid="uid://b2c5twfkqaw51" path="res://Assets/Art/Fonts/Silver.ttf" id="4_silver"]
 [ext_resource type="Shader" uid="uid://c16jou1juxyai" path="res://Shaders/honor_vignette.gdshader" id="5_vignette_shader"]
+[ext_resource type="Texture2D" path="res://Assets/Art/Characters/Mago_Plantilla-Interior.png" id="6_mago_interior"]
+[ext_resource type="Texture2D" path="res://Assets/Art/Characters/Mago_Plantilla-Borde.png" id="7_mago_borde"]
+[ext_resource type="Texture2D" path="res://Assets/Art/UI/Lente_prueba.png" id="8_lente_prueba"]
+[ext_resource type="Shader" path="res://Shaders/magic_lens_item.gdshader" id="9_lens_item_shader"]
+[ext_resource type="Shader" path="res://Shaders/magic_lens_mask.gdshader" id="10_lens_mask_shader"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_book"]
 bg_color = Color(0.42, 0.18, 0.18, 1)
@@ -61,6 +66,18 @@ shader_parameter/vignette_color = Color(1, 1, 1, 0.9)
 shader_parameter/intensity = 0.0
 shader_parameter/softness = 0.22
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_item_lens"]
+shader = ExtResource("9_lens_item_shader")
+shader_parameter/lens_center_px = Vector2(-999, -999)
+shader_parameter/lens_radius_px = 28.0
+shader_parameter/tint_color = Color(0.62, 0.2, 0.9, 1)
+shader_parameter/tint_strength = 0.78
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_rune_mask"]
+shader = ExtResource("10_lens_mask_shader")
+shader_parameter/lens_center_px = Vector2(-999, -999)
+shader_parameter/lens_radius_px = 28.0
+
 [node name="DeskView" type="Control" unique_id=1928016336]
 layout_mode = 3
 anchors_preset = 15
@@ -81,41 +98,51 @@ unique_name_in_owner = true
 layout_mode = 0
 offset_left = 12.0
 offset_top = 10.0
-offset_right = 200.0
-offset_bottom = 28.0
+offset_right = 240.0
+offset_bottom = 48.0
 theme_override_colors/font_color = Color(0.92, 0.86, 0.74, 1)
 theme_override_fonts/font = ExtResource("3_mono")
 theme_override_font_sizes/font_size = 16
-text = "Nivel 1 - NPC 1/4"
+text = "Día 1/5  |  01:00  |  $20
+Tamaño de la fila: 4"
 
-[node name="NPCRect" type="ColorRect" parent="." unique_id=1071050630]
+[node name="NPCRect" type="Control" parent="." unique_id=1071050630]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 245.0
-offset_top = 44.0
-offset_right = 325.0
-offset_bottom = 140.0
-color = Color(0.32, 0.43, 0.52, 1)
+offset_left = 221.0
+offset_top = 8.0
+offset_right = 349.0
+offset_bottom = 220.0
 
-[node name="NPCLabel" type="Label" parent="NPCRect" unique_id=564840791]
+[node name="NPCInterior" type="TextureRect" parent="NPCRect"]
 unique_name_in_owner = true
+texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
-theme_override_fonts/font = ExtResource("4_silver")
-theme_override_font_sizes/font_size = 16
-text = "[NPC 1
-80x96]"
-horizontal_alignment = 1
-vertical_alignment = 1
+texture = ExtResource("6_mago_interior")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NPCBorde" type="TextureRect" parent="NPCRect"]
+unique_name_in_owner = true
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("7_mago_borde")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="DeskRect" type="ColorRect" parent="." unique_id=1532849781]
 layout_mode = 0
-offset_top = 140.0
+offset_top = 220.0
 offset_right = 570.0
 offset_bottom = 320.0
 color = Color(0.45, 0.3, 0.2, 1)
@@ -126,42 +153,27 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -26.0
-offset_bottom = -6.0
+offset_top = -24.0
+offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 0
 theme_override_colors/font_color = Color(0.9, 0.82, 0.72, 0.85)
 theme_override_fonts/font = ExtResource("4_silver")
 theme_override_font_sizes/font_size = 16
-text = "[Mesa 570x180]"
+text = "[Mesa 570x100]"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="BtnBook" type="Button" parent="." unique_id=1936746714]
-unique_name_in_owner = true
-layout_mode = 0
-offset_left = 30.0
-offset_top = 174.0
-offset_right = 86.0
-offset_bottom = 238.0
-focus_mode = 0
-theme_override_colors/font_color = Color(0.95, 0.9, 0.8, 1)
-theme_override_colors/font_hover_color = Color(1, 0.92, 0.5, 1)
-theme_override_fonts/font = ExtResource("4_silver")
-theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = SubResource("StyleBoxFlat_book")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_book_hover")
-theme_override_styles/hover = SubResource("StyleBoxFlat_book_hover")
-text = "[Libro
-56x64]"
-
 [node name="ItemRect" type="ColorRect" parent="." unique_id=1986333800]
 unique_name_in_owner = true
+clip_contents = true
+material = SubResource("ShaderMaterial_item_lens")
 layout_mode = 0
 offset_left = 253.0
-offset_top = 170.0
+offset_top = 236.0
 offset_right = 317.0
-offset_bottom = 234.0
+offset_bottom = 300.0
+mouse_default_cursor_shape = 2
 color = Color(0.76, 0.58, 0.24, 1)
 
 [node name="ItemLabel" type="Label" parent="ItemRect" unique_id=378206880]
@@ -172,6 +184,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 theme_override_colors/font_color = Color(0.16, 0.11, 0.06, 1)
 theme_override_fonts/font = ExtResource("4_silver")
 theme_override_font_sizes/font_size = 16
@@ -180,17 +193,34 @@ text = "[Objeto 1
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ActionButtons" type="VBoxContainer" parent="." unique_id=2131861610]
+[node name="RuneLabel" type="Label" parent="ItemRect"]
+unique_name_in_owner = true
+material = SubResource("ShaderMaterial_rune_mask")
 layout_mode = 0
-offset_left = 420.0
-offset_top = 168.0
-offset_right = 540.0
-offset_bottom = 252.0
-theme_override_constants/separation = 12
+offset_left = -20.0
+offset_top = 2.0
+offset_right = 140.0
+offset_bottom = 66.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.2, 1)
+theme_override_colors/font_outline_color = Color(0.18, 0.05, 0.28, 1)
+theme_override_constants/outline_size = 2
+theme_override_fonts/font = ExtResource("3_mono")
+theme_override_font_sizes/font_size = 16
+text = "A K R X Z M Q
+V T B N L P G"
+
+[node name="ActionButtons" type="HBoxContainer" parent="." unique_id=2131861610]
+layout_mode = 0
+offset_left = 20.0
+offset_top = 278.0
+offset_right = 180.0
+offset_bottom = 302.0
+theme_override_constants/separation = 8
 
 [node name="BtnCobrar" type="Button" parent="ActionButtons" unique_id=1422085267]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 34)
+custom_minimum_size = Vector2(76, 24)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(0.95, 0.98, 0.95, 1)
@@ -203,7 +233,7 @@ text = "COBRAR"
 
 [node name="BtnArrestar" type="Button" parent="ActionButtons" unique_id=231472565]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(120, 34)
+custom_minimum_size = Vector2(76, 24)
 layout_mode = 2
 focus_mode = 0
 theme_override_colors/font_color = Color(0.98, 0.92, 0.92, 1)
@@ -213,6 +243,38 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_arrestar")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_arrestar_hover")
 theme_override_styles/hover = SubResource("StyleBoxFlat_arrestar_hover")
 text = "ARRESTAR"
+
+[node name="BtnBook" type="Button" parent="." unique_id=1936746714]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 472.0
+offset_top = 290.0
+offset_right = 528.0
+offset_bottom = 354.0
+focus_mode = 0
+theme_override_colors/font_color = Color(0.95, 0.9, 0.8, 1)
+theme_override_colors/font_hover_color = Color(1, 0.92, 0.5, 1)
+theme_override_fonts/font = ExtResource("4_silver")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_book")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_book_hover")
+theme_override_styles/hover = SubResource("StyleBoxFlat_book_hover")
+text = "[Libro
+56x64]"
+
+[node name="MagicLens" type="TextureRect" parent="."]
+unique_name_in_owner = true
+texture_filter = 1
+layout_mode = 0
+offset_left = 365.0
+offset_top = 234.0
+offset_right = 437.0
+offset_bottom = 306.0
+mouse_filter = 0
+mouse_default_cursor_shape = 2
+texture = ExtResource("8_lente_prueba")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="VignetteLayer" type="CanvasLayer" parent="." unique_id=598545738]
 layer = 5
@@ -316,67 +378,84 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.65)
+color = Color(0, 0, 0, 1)
 
-[node name="Panel" type="ColorRect" parent="DayEndOverlay" unique_id=1557778944]
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -135.0
-offset_top = -65.0
-offset_right = 135.0
-offset_bottom = 65.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0.89, 0.81, 0.67, 1)
-
-[node name="VBox" type="VBoxContainer" parent="DayEndOverlay/Panel" unique_id=670191917]
+[node name="Margin" type="MarginContainer" parent="DayEndOverlay"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 10
+theme_override_constants/margin_left = 40
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 40
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="DayEndOverlay/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
 alignment = 1
 
-[node name="DayEndLabel" type="Label" parent="DayEndOverlay/Panel/VBox" unique_id=561240209]
+[node name="DayEndTitle" type="Label" parent="DayEndOverlay/Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_colors/font_color = Color(0.24, 0.14, 0.16, 1)
-theme_override_fonts/font = ExtResource("4_silver")
-theme_override_font_sizes/font_size = 16
-text = "Nivel 1 completado"
-horizontal_alignment = 1
-
-[node name="Buttons" type="HBoxContainer" parent="DayEndOverlay/Panel/VBox" unique_id=1017720665]
-layout_mode = 2
-theme_override_constants/separation = 16
-alignment = 1
-
-[node name="BtnRestartDay" type="Button" parent="DayEndOverlay/Panel/VBox/Buttons" unique_id=937152307]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
-theme_override_colors/font_hover_color = Color(0.55, 0.35, 0.2, 1)
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
 theme_override_fonts/font = ExtResource("3_mono")
 theme_override_font_sizes/font_size = 16
-text = "REPETIR"
-flat = true
+text = "RESUMEN DEL DÍA 1"
+horizontal_alignment = 1
 
-[node name="BtnBackMenu" type="Button" parent="DayEndOverlay/Panel/VBox/Buttons" unique_id=1962225852]
+[node name="DayEndLabel" type="RichTextLabel" parent="DayEndOverlay/Margin/VBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/default_color = Color(0.92, 0.86, 0.74, 1)
+theme_override_fonts/normal_font = ExtResource("3_mono")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+text = "Resumen"
+fit_content = true
+scroll_active = false
+autowrap_mode = 0
+horizontal_alignment = 1
+
+[node name="Buttons" type="HBoxContainer" parent="DayEndOverlay/Margin/VBox"]
+layout_mode = 2
+theme_override_constants/separation = 24
+alignment = 1
+
+[node name="BtnNextDay" type="Button" parent="DayEndOverlay/Margin/VBox/Buttons"]
 unique_name_in_owner = true
 layout_mode = 2
 focus_mode = 0
-theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
-theme_override_colors/font_hover_color = Color(0.65, 0.25, 0.25, 1)
+flat = true
+theme_override_colors/font_color = Color(0.7, 0.95, 0.65, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 0.5, 1)
+theme_override_fonts/font = ExtResource("3_mono")
+theme_override_font_sizes/font_size = 16
+text = "DÍA 2"
+
+[node name="BtnRestartDay" type="Button" parent="DayEndOverlay/Margin/VBox/Buttons"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+focus_mode = 0
+flat = true
+theme_override_colors/font_color = Color(0.7, 0.95, 0.65, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 0.5, 1)
+theme_override_fonts/font = ExtResource("3_mono")
+theme_override_font_sizes/font_size = 16
+text = "REINTENTAR"
+
+[node name="BtnBackMenu" type="Button" parent="DayEndOverlay/Margin/VBox/Buttons"]
+unique_name_in_owner = true
+layout_mode = 2
+focus_mode = 0
+flat = true
+theme_override_colors/font_color = Color(0.92, 0.86, 0.74, 1)
+theme_override_colors/font_hover_color = Color(0.95, 0.45, 0.45, 1)
 theme_override_fonts/font = ExtResource("3_mono")
 theme_override_font_sizes/font_size = 16
 text = "MENÚ"
-flat = true
 
 [node name="PauseMenu" parent="." unique_id=1238947580 instance=ExtResource("2_pause_menu")]
