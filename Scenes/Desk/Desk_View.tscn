@@ -12,6 +12,8 @@
 [ext_resource type="Texture2D" uid="uid://b660v63vpcjh2" path="res://Assets/Art/UI/Lente_prueba.png" id="8_lente_prueba"]
 [ext_resource type="Shader" uid="uid://b4ekisychwsvo" path="res://Shaders/magic_lens_item.gdshader" id="9_lens_item_shader"]
 [ext_resource type="Shader" uid="uid://df2u2dlj2di5d" path="res://Shaders/magic_lens_mask.gdshader" id="10_lens_mask_shader"]
+[ext_resource type="Texture2D" path="res://Assets/Art/Items/PlantillaEscudo_Interior.png" id="11_escudo_int"]
+[ext_resource type="Texture2D" path="res://Assets/Art/Items/PlantillaEscudo_Borde.png" id="12_escudo_borde"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_item_lens"]
 shader = ExtResource("9_lens_item_shader")
@@ -149,56 +151,78 @@ offset_right = 570.0
 offset_bottom = 320.0
 texture = ExtResource("6_pxxjb")
 
-[node name="ItemRect" type="ColorRect" parent="." unique_id=1986333800]
+[node name="ItemRect" type="Control" parent="." unique_id=1986333800]
 unique_name_in_owner = true
-material = SubResource("ShaderMaterial_item_lens")
 clip_contents = true
 layout_mode = 0
-offset_left = 253.0
-offset_top = 236.0
-offset_right = 317.0
-offset_bottom = 300.0
+offset_left = 237.0
+offset_top = 222.0
+offset_right = 333.0
+offset_bottom = 318.0
 mouse_default_cursor_shape = 2
-color = Color(0.76, 0.58, 0.24, 1)
 
-[node name="ItemLabel" type="Label" parent="ItemRect" unique_id=378206880]
-unique_name_in_owner = true
+[node name="ItemInterior" type="TextureRect" parent="ItemRect"]
+clip_children = 2
+texture_filter = 1
+material = SubResource("ShaderMaterial_item_lens")
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.16, 0.11, 0.06, 1)
-theme_override_fonts/font = ExtResource("4_silver")
-theme_override_font_sizes/font_size = 16
-text = "[Objeto 1
-64x64]"
-horizontal_alignment = 1
-vertical_alignment = 1
+mouse_filter = 2
+texture = ExtResource("11_escudo_int")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="RuneLabel" type="Label" parent="ItemRect" unique_id=1596617860]
+[node name="RuneLabel" type="Label" parent="ItemRect/ItemInterior" unique_id=1596617860]
 unique_name_in_owner = true
 material = SubResource("ShaderMaterial_rune_mask")
 layout_mode = 0
-offset_left = -20.0
-offset_top = 2.0
-offset_right = 140.0
-offset_bottom = 66.0
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 14.0
+offset_bottom = 18.0
+mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.92, 0.2, 1)
 theme_override_colors/font_outline_color = Color(0.18, 0.05, 0.28, 1)
 theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("3_mono")
 theme_override_font_sizes/font_size = 16
-text = "A K R X Z M Q
-V T B N L P G"
+text = "a"
+
+[node name="ItemBorde" type="TextureRect" parent="ItemRect"]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("12_escudo_borde")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ItemDecoracion" type="TextureRect" parent="ItemRect"]
+texture_filter = 1
+material = SubResource("ShaderMaterial_item_lens")
+layout_mode = 0
+offset_left = 32.0
+offset_top = 28.0
+offset_right = 64.0
+offset_bottom = 60.0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
 
 [node name="ActionButtons" type="HBoxContainer" parent="." unique_id=2131861610]
 layout_mode = 0
-offset_left = 20.0
-offset_top = 278.0
-offset_right = 180.0
-offset_bottom = 302.0
+offset_left = 14.0
+offset_top = 288.0
+offset_right = 174.0
+offset_bottom = 312.0
 theme_override_constants/separation = 8
 
 [node name="BtnCobrar" type="Button" parent="ActionButtons" unique_id=1422085267]
@@ -230,9 +254,9 @@ text = "ARRESTAR"
 [node name="BtnBook" type="Button" parent="." unique_id=1936746714]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 472.0
+offset_left = 490.0
 offset_top = 290.0
-offset_right = 528.0
+offset_right = 546.0
 offset_bottom = 354.0
 focus_mode = 0
 theme_override_colors/font_color = Color(0.95, 0.9, 0.8, 1)
@@ -249,10 +273,10 @@ text = "[Libro
 unique_name_in_owner = true
 texture_filter = 1
 layout_mode = 0
-offset_left = 365.0
-offset_top = 234.0
-offset_right = 437.0
-offset_bottom = 306.0
+offset_left = 56.0
+offset_top = 212.0
+offset_right = 128.0
+offset_bottom = 284.0
 mouse_filter = 0
 mouse_default_cursor_shape = 2
 texture = ExtResource("8_lente_prueba")

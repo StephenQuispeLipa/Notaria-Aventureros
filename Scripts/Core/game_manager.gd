@@ -2,6 +2,7 @@ class_name GameManagerClass
 extends Node
 
 const SAVE_PATH := "user://savegame.json"
+const SETTINGS_PATH := "user://settings.cfg"
 
 const STARTING_MONEY := 20
 const FIXED_DAILY_SALARY := 15
@@ -100,4 +101,43 @@ func load_game() -> bool:
 func delete_save() -> void:
 	if has_save():
 		DirAccess.remove_absolute(SAVE_PATH)
+
+func _ready() -> void:
+	load_settings()
+
+func save_settings() -> void:
+	var cfg := ConfigFile.new()
+	cfg.set_value("audio", "master", _get_bus_linear("Master"))
+	cfg.set_value("audio", "bgm", _get_bus_linear("BGM"))
+	cfg.set_value("audio", "sfx", _get_bus_linear("SFX"))
+	var mode := DisplayServer.window_get_mode()
+	var is_fs := mode == DisplayServer.WINDOW_MODE_FULLSCREEN or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
+	cfg.set_value("display", "fullscreen", is_fs)
+	cfg.save(SETTINGS_PATH)
+
+func load_settings() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load(SETTINGS_PATH) != OK:
+		return
+	_apply_bus_linear("Master", float(cfg.get_value("audio", "master", 1.0)))
+	_apply_bus_linear("BGM", float(cfg.get_value("audio", "bgm", 1.0)))
+	_apply_bus_linear("SFX", float(cfg.get_value("audio", "sfx", 1.0)))
+	var is_fs := bool(cfg.get_value("display", "fullscreen", false))
+	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if is_fs else DisplayServer.WINDOW_MODE_WINDOWED)
+
+func _get_bus_linear(bus_name: String) -> float:
+	var idx := AudioServer.get_bus_index(bus_name)
+	if idx == -1 or AudioServer.is_bus_mute(idx):
+		return 0.0 if idx != -1 else 1.0
+	return db_to_linear(AudioServer.get_bus_volume_db(idx))
+
+func _apply_bus_linear(bus_name: String, linear_val: float) -> void:
+	var idx := AudioServer.get_bus_index(bus_name)
+	if idx == -1:
+		return
+	if linear_val <= 0.001:
+		AudioServer.set_bus_mute(idx, true)
+	else:
+		AudioServer.set_bus_mute(idx, false)
+		AudioServer.set_bus_volume_db(idx, linear_to_db(clampf(linear_val, 0.0, 1.0)))
 
