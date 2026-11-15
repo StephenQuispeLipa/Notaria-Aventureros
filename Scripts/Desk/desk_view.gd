@@ -18,11 +18,12 @@ const BOOK_PEEK_Y: float = 264.0
 const BOOK_HOVER_Y: float = 200.0
 const ITEM_DEFAULT_POS := Vector2(253.0, 236.0)
 const VIEWPORT_SIZE := Vector2(570.0, 320.0)
-const LENS_GLASS_RADIUS: float = 28.0
+const LENS_GLASS_RADIUS: float = 34.0
 const RUNE_ALPHABET := "abcdefghijklmnopqrstuvwxyz"
 const RUNES_PER_ITEM := 10
 const MAX_ITEMS_PER_NPC := 3
-const MAX_BOOK_PAGES := 5
+const MAX_BOOK_PAGES := 4
+const BOOK_FONT: Font = preload("res://Assets/Art/Fonts/monogram-extended.ttf")
 
 const ITEM_SLOT_POSITIONS: Dictionary = {
 	1: [Vector2(282.0, 222.0)],
@@ -44,6 +45,12 @@ const ITEM_TEMPLATES: Array[Dictionary] = [
 		"interior": preload("res://Assets/Art/Items/PlantillaLibro_Libro_Interior.png"),
 		"borde": preload("res://Assets/Art/Items/PlantillaLibro_Libro_Borde.png"),
 		"deco_pos": Vector2(35.0, 22.0),
+	},
+	{
+		"id": "pocion",
+		"interior": preload("res://Assets/Art/Items/Pocion_Interior.png"),
+		"borde": preload("res://Assets/Art/Items/Pocion_Borde.png"),
+		"deco_pos": Vector2(32.0, 42.0),
 	},
 ]
 
@@ -110,6 +117,8 @@ var current_book_page: int = 1
 @onready var btn_prev_page: Button = %BtnPrevPage
 @onready var btn_next_page: Button = %BtnNextPage
 @onready var book_page_label: Label = %BookPageLabel
+@onready var left_page: VBoxContainer = %LeftPage
+@onready var right_page: VBoxContainer = %RightPage
 
 func _ready() -> void:
 	randomize()
@@ -352,7 +361,12 @@ func _spawn_current_npc() -> void:
 			var borde := slot["borde"] as TextureRect
 			var deco := slot["deco"] as TextureRect
 			interior.texture = tpl["interior"]
-			interior.self_modulate = deco_info["color"]
+			var item_color: Color = deco_info["color"]
+			if tpl["id"] == "libro":
+				item_color = item_color.darkened(0.22)
+			elif tpl["id"] == "pocion":
+				item_color.a = 0.70
+			interior.self_modulate = item_color
 			borde.texture = tpl["borde"]
 			var atlas := AtlasTexture.new()
 			atlas.atlas = DECORACIONES_SHEET
@@ -466,8 +480,11 @@ func _on_prev_page_pressed() -> void:
 	_update_book_page_ui()
 	AudioManager.play_sfx(LIBRO_OPEN_SFX)
 
+func _get_max_unlocked_book_page() -> int:
+	return clampi(1 + ceili(float(GameManager.current_day) / 2.0), 1, MAX_BOOK_PAGES)
+
 func _on_next_page_pressed() -> void:
-	if current_book_page >= MAX_BOOK_PAGES:
+	if current_book_page >= _get_max_unlocked_book_page():
 		return
 	current_book_page += 1
 	GameManager.book_page = current_book_page
@@ -476,9 +493,170 @@ func _on_next_page_pressed() -> void:
 	AudioManager.play_sfx(LIBRO_OPEN_SFX)
 
 func _update_book_page_ui() -> void:
+	var max_unlocked := _get_max_unlocked_book_page()
+	current_book_page = clampi(current_book_page, 1, max_unlocked)
 	book_page_label.text = "Página %d/%d" % [current_book_page, MAX_BOOK_PAGES]
 	btn_prev_page.disabled = current_book_page <= 1
-	btn_next_page.disabled = current_book_page >= MAX_BOOK_PAGES
+	btn_next_page.disabled = current_book_page >= max_unlocked
+
+	_clear_container(left_page)
+	_clear_container(right_page)
+
+	match current_book_page:
+		1:
+			_populate_book_glossary_page(left_page)
+			_populate_book_categories_page(right_page)
+		2:
+			_populate_book_day_page(left_page, 1)
+			if GameManager.current_day >= 2:
+				_populate_book_day_page(right_page, 2)
+		3:
+			if GameManager.current_day >= 3:
+				_populate_book_day_page(left_page, 3)
+			if GameManager.current_day >= 4:
+				_populate_book_day_page(right_page, 4)
+		4:
+			if GameManager.current_day >= 5:
+				_populate_book_day_page(left_page, 5)
+
+func _clear_container(container: Node) -> void:
+	for child in container.get_children():
+		child.queue_free()
+
+func _colored_tag(label_text: String, hex_color: String) -> String:
+	return "[color=%s]%s[/color]" % [hex_color, label_text]
+
+func _make_book_rtl(bbcode_text: String = "", font_size: int = 16) -> RichTextLabel:
+	var rtl := RichTextLabel.new()
+	rtl.bbcode_enabled = true
+	rtl.fit_content = true
+	rtl.scroll_active = false
+	rtl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	rtl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	rtl.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	rtl.add_theme_font_override("normal_font", BOOK_FONT)
+	rtl.add_theme_font_override("bold_font", BOOK_FONT)
+	rtl.add_theme_font_size_override("normal_font_size", font_size)
+	rtl.add_theme_font_size_override("bold_font_size", font_size)
+	rtl.add_theme_color_override("default_color", Color(0.24, 0.14, 0.10, 1.0))
+	if not bbcode_text.is_empty():
+		rtl.text = bbcode_text
+	return rtl
+
+func _get_deco_atlas(cell: Vector2i) -> AtlasTexture:
+	var atlas := AtlasTexture.new()
+	atlas.atlas = DECORACIONES_SHEET
+	atlas.region = Rect2(cell.x * 16, cell.y * 16, 16, 16)
+	return atlas
+
+func _append_book_tokens(rtl: RichTextLabel, tokens: Array) -> void:
+	for token in tokens:
+		if token is String:
+			rtl.append_text(token)
+		elif token is Vector2i:
+			rtl.add_image(_get_deco_atlas(token), 14, 14, Color.WHITE, INLINE_ALIGNMENT_CENTER)
+		elif token is Texture2D:
+			rtl.add_image(token, 14, 14, Color.WHITE, INLINE_ALIGNMENT_CENTER)
+
+func _make_deco_icon(cell: Vector2i) -> TextureRect:
+	var tex := TextureRect.new()
+	var atlas := AtlasTexture.new()
+	atlas.atlas = DECORACIONES_SHEET
+	atlas.region = Rect2(cell.x * 16, cell.y * 16, 16, 16)
+	tex.texture = atlas
+	tex.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	tex.custom_minimum_size = Vector2(16, 16)
+	tex.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	tex.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	tex.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return tex
+
+func _populate_book_glossary_page(page: VBoxContainer) -> void:
+	page.add_theme_constant_override("separation", 2)
+	var lines: Array[String] = [
+		"%s: Obj. paladín" % _colored_tag("Corona", "#9e6b00"),
+		"%s: Obj. brujo" % _colored_tag("Calavera", "#5a5a5a"),
+		"%s: Obj. clérigo" % _colored_tag("Luna", "#006e9e"),
+		"%s: Obj. mago" % _colored_tag("Ojo", "#3b2896"),
+		"%s: Obj. guerrero" % _colored_tag("Espada", "#4f5b66"),
+		"%s: Obj. alquimia" % _colored_tag("Fuego", "#c44d00"),
+		"%s: Obj. de lujo" % _colored_tag("Gema", "#7b1fa2"),
+		"%s: Obj. druida" % _colored_tag("Esmeralda", "#157524"),
+		"%s: Obj. económico" % _colored_tag("Moneda", "#997a00"),
+		"%s: Armas" % _colored_tag("Escudos", "#4f5b66"),
+		"Pociones: Consumibles",
+		"Libros: Educación",
+	]
+	page.add_child(_make_book_rtl("\n".join(lines), 16))
+
+func _populate_book_categories_page(page: VBoxContainer) -> void:
+	page.add_theme_constant_override("separation", 6)
+	var categories: Array[Dictionary] = [
+		{"title": "Objetos sagrados:", "cells": [Vector2i(2, 0), Vector2i(0, 0), Vector2i(0, 2)]},
+		{"title": "Objetos peligrosos:", "cells": [Vector2i(1, 1), Vector2i(2, 1), Vector2i(1, 0), Vector2i(0, 1)]},
+		{"title": "Objetos valiosos:", "cells": [Vector2i(0, 2), Vector2i(2, 2)]},
+		{"title": "Objetos naturistas:", "cells": [Vector2i(1, 2), Vector2i(2, 1)]},
+	]
+	for cat in categories:
+		page.add_child(_make_book_rtl(cat["title"], 16))
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 6)
+		row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		for cell in cat["cells"]:
+			row.add_child(_make_deco_icon(cell))
+		page.add_child(row)
+
+func _populate_book_day_page(page: VBoxContainer, day: int) -> void:
+	page.add_theme_constant_override("separation", 6)
+	var reward_line := "Pago por arresto: 4-7 monedas"
+	if day == GameManager.current_day:
+		reward_line = "Pago por arresto hoy: %d monedas" % GameManager.arrest_reward_today
+
+	var rtl := _make_book_rtl("", 16)
+	rtl.append_text("[b]DÍA %d[/b]\n%s\n\n" % [day, reward_line])
+
+	var escudo_icon: Texture2D = ITEM_TEMPLATES[0]["borde"]
+	var libro_icon: Texture2D = ITEM_TEMPLATES[1]["borde"]
+	var pocion_icon: Texture2D = ITEM_TEMPLATES[2]["borde"]
+	var magic_tag := _colored_tag("Mágicos", "#8a1be0")
+	var magic_sg_tag := _colored_tag("Mágico", "#8a1be0")
+
+	match day:
+		1:
+			_append_book_tokens(rtl, [
+				"Los objetos de [",
+				_colored_tag("Paladín ", "#9e6b00"), Vector2i(0, 0), ", ",
+				_colored_tag("Druida ", "#157524"), Vector2i(1, 2), ", ",
+				_colored_tag("Económicos ", "#997a00"), Vector2i(2, 2),
+				"] no pueden pasar, a no ser que sean [Consumibles ", pocion_icon,
+				"] o [%s (Lente)]. Todo lo demás, pasa." % magic_tag,
+			])
+		2:
+			_append_book_tokens(rtl, [
+				"Prohibidos los objetos peligrosos (",
+				Vector2i(1, 1), " ", Vector2i(2, 1), " ", Vector2i(1, 0), " ", Vector2i(0, 1),
+				"), salvo [Educación ", libro_icon, "]. Todo lo demás, pasa.",
+			])
+		3:
+			_append_book_tokens(rtl, [
+				"Los objetos valiosos (", Vector2i(0, 2), " ", Vector2i(2, 2),
+				") solo pasan si son [%s (Lente)]. Los de [" % magic_tag,
+				_colored_tag("Clérigo ", "#006e9e"), Vector2i(2, 0), "] siempre pasan.",
+			])
+		4:
+			_append_book_tokens(rtl, [
+				"Prohibidas las [", _colored_tag("Armas ", "#4f5b66"), escudo_icon,
+				"] y objetos de [", _colored_tag("Brujo ", "#5a5a5a"), Vector2i(1, 0),
+				"], excepto si llevan ", Vector2i(2, 1), ". Todo lo demás, pasa.",
+			])
+		5:
+			_append_book_tokens(rtl, [
+				"Solo pasan los objetos sagrados (",
+				Vector2i(2, 0), " ", Vector2i(0, 0), " ", Vector2i(0, 2),
+				") que NO sean [%s (Lente)]. Todo lo demás debe ser arrestado." % magic_sg_tag,
+			])
+
+	page.add_child(rtl)
 
 func _on_book_backdrop_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:

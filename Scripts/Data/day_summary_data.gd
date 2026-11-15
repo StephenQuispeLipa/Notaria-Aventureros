@@ -65,7 +65,7 @@ const GAME_WIN_TIPS: Array[String] = [
 
 static func calculate_day_finances(prev_money: int, day: int, arrests: int, timed_out: bool) -> Dictionary:
 	var salary := floori(GameManagerClass.FIXED_DAILY_SALARY / 2.0) if timed_out else GameManagerClass.FIXED_DAILY_SALARY
-	var arrest_rate := randi_range(4, 7)
+	var arrest_rate: int = GameManager.arrest_reward_today if GameManager.arrest_reward_today > 0 else randi_range(4, 7)
 	var arrest_bonus := arrests * arrest_rate
 	var food_cost := randi_range(10, 16)
 

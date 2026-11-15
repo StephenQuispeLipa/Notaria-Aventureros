@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://kxq8afbvqe6k" path="res://Assets/Art/Characters/Mago_Plantilla-Interior.png" id="6_mago_interior"]
 [ext_resource type="Texture2D" uid="uid://dpp4y3kawrci5" path="res://Assets/Art/UI/Mesa.png" id="6_pxxjb"]
 [ext_resource type="Texture2D" uid="uid://02eu0v2h6dun" path="res://Assets/Art/Characters/Mago_Plantilla-Borde.png" id="7_mago_borde"]
-[ext_resource type="Texture2D" uid="uid://b660v63vpcjh2" path="res://Assets/Art/UI/Lente_prueba.png" id="8_lente_prueba"]
+[ext_resource type="Texture2D" path="res://Assets/Art/UI/Lente.png" id="8_lente_prueba"]
 [ext_resource type="Shader" uid="uid://b4ekisychwsvo" path="res://Shaders/magic_lens_item.gdshader" id="9_lens_item_shader"]
 [ext_resource type="Shader" uid="uid://df2u2dlj2di5d" path="res://Shaders/magic_lens_mask.gdshader" id="10_lens_mask_shader"]
 [ext_resource type="Texture2D" uid="uid://cd4n6ltfbimli" path="res://Assets/Art/Items/PlantillaEscudo_Interior.png" id="11_escudo_int"]
@@ -291,6 +291,7 @@ vertical_alignment = 1
 
 [node name="MagicLens" type="TextureRect" parent="." unique_id=606100934]
 unique_name_in_owner = true
+self_modulate = Color(1, 1, 1, 0.78)
 texture_filter = 1
 layout_mode = 0
 offset_left = 56.0
@@ -360,13 +361,13 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 24.0
-offset_top = 18.0
-offset_right = -24.0
-offset_bottom = -64.0
+offset_left = 34.0
+offset_top = 24.0
+offset_right = -34.0
+offset_bottom = -58.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 24
+theme_override_constants/separation = 26
 
 [node name="LeftPage" type="VBoxContainer" parent="BookOverlay/BookPanel/BookPages" unique_id=837269344]
 unique_name_in_owner = true
