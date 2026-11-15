@@ -13,54 +13,61 @@ const EXTERNAL_EVENTS: Array[Dictionary] = [
 
 const DAILY_TIPS: Dictionary = {
 	1: [
-		"[b]DECRETO INAUGURAL:[/b]",
-		"• Inspecciona cada objeto con el [color=#1a386b]Lente Espectral[/color].",
-		"• Si el objeto no presenta anomalías ni sellos prohibidos, pulsa [color=#1e6b2c]COBRAR[/color].",
-		"• Si detectas runas arcanas o contrabando, pulsa [color=#8a1c1c]ARRESTAR[/color] de inmediato.",
+		"[color=#1a386b]DECRETO INAUGURAL:[/color]",
+		"• Usa el Lente Espectral.",
+		"• Sin anomalias: [color=#1e6b2c]COBRAR[/color].",
+		"• Con runas: [color=#8a1c1c]ARRESTAR[/color].",
 		"",
-		"[i]Nota: Cada arresto legítimo otorga una recompensa en oro.[/i]",
+		"Cada arresto da oro extra.",
 	],
 	2: [
-		"[b]AVISO DE SEGURIDAD:[/b]",
-		"• Cuidado con el reloj de arena: si se agota el tiempo del día, el gremio retendrá el [color=#8a1c1c]50% de tu sueldo[/color].",
-		"• Arrastra los objetos por la mesa para examinar sus bordes e inscripciones con detalle.",
+		"[color=#1a386b]AVISO DE SEGURIDAD:[/color]",
+		"• Ojo al reloj: tiempo 0",
+		"  retiene el [color=#8a1c1c]50% de sueldo[/color].",
+		"• Mueve los objetos en mesa.",
 		"",
-		"[i]Consejo: No tardes demasiado con cada aventurero.[/i]",
+		"No tardes con cada cliente.",
 	],
 	3: [
-		"[b]INFORME FAMILIAR Y DEUDAS:[/b]",
-		"• Los costos de manutención aumentan y la ciudad cobra impuestos.",
-		"• Tu familia puede enfermarse en cualquier momento. Mantén siempre una reserva de al menos [color=#1a386b]$15-$20[/color].",
-		"• No permitas que pasen objetos con anomalías ocultas.",
+		"[color=#1a386b]INFORME FAMILIAR:[/color]",
+		"• Los costos aumentan.",
+		"• Tu familia puede enfermar.",
+		"• Reserva de [color=#1e6b2c]$15-$20[/color].",
+		"• No dejes pasar anomalias.",
 	],
 	4: [
-		"[b]ALERTA DE MAGOS Y CARGAS:[/b]",
-		"• Los clientes traerán hasta [color=#1a386b]3 objetos[/color] a la vez.",
-		"• Revisa uno por uno. Basta con que [b]un solo objeto[/b] tenga runas prohibidas para ordenar el arresto.",
-		"• Sepáralos en la mesa para ver qué ocultan detrás.",
+		"[color=#1a386b]ALERTA DE CARGAS:[/color]",
+		"• Traen hasta 3 objetos.",
+		"• Revisa uno por uno.",
+		"• Una sola runa amerita",
+		"  [color=#8a1c1c]ARRESTO INMEDIATO[/color].",
+		"• Sepáralos en la mesa.",
 	],
 	5: [
-		"[b]AUDITORÍA REAL FINAL:[/b]",
-		"• Es el último día de inspección. La guardia real revisará tus libros de cuentas.",
-		"• ¡Si tu oro cae a cero en los gastos de hoy, irás a prisión por insolvencia!",
-		"• Asegura cada cobro y cada captura para alcanzar el final del turno.",
+		"[color=#1a386b]AUDITORIA REAL FINAL:[/color]",
+		"• Ultimo dia de inspeccion.",
+		"• Si tu oro llega a $0,",
+		"  vas a prision por deudas.",
+		"• Asegura cada cobro.",
 	],
 }
 
 const GAME_OVER_TIPS: Array[String] = [
-	"[b]INFORME DE BANCARROTA:[/b]",
-	"• Tus arcas se han vaciado por completo.",
-	"• El alguacil real ha clausurado la notaría y confiscado tus pertenencias para saldar deudas.",
+	"[color=#8a1c1c]INFORME DE BANCARROTA:[/color]",
+	"• Tus arcas se han vaciado.",
+	"• El alguacil clausuro la notaria",
+	"  y confisco tus bienes.",
 	"",
-	"[color=#8a1c1c]Has fracasado en mantener la oficina a flote.[/color]",
+	"[color=#8a1c1c]Fin de la notaria.[/color]",
 ]
 
 const GAME_WIN_TIPS: Array[String] = [
-	"[b]CONDECORACIÓN REAL:[/b]",
-	"• ¡Has completado los 5 días de auditoría con honores!",
-	"• El gremio de notarios reconoce tu astucia e integridad protegiendo la ciudad.",
+	"[color=#1e6b2c]CONDECORACION REAL:[/color]",
+	"• ¡5 dias completados con exito!",
+	"• El gremio reconoce tu astucia",
+	"  e integridad.",
 	"",
-	"[color=#1e6b2c]¡La Notaría de Aventureros ha prosperado gracias a ti![/color]",
+	"[color=#1e6b2c]¡Has triunfado![/color]",
 ]
 
 static func calculate_day_finances(prev_money: int, day: int, arrests: int, timed_out: bool) -> Dictionary:
@@ -90,19 +97,19 @@ static func calculate_day_finances(prev_money: int, day: int, arrests: int, time
 	var day_expenses := food_cost + event_cost
 	var new_money := prev_money + day_income - day_expenses
 
-	var salary_line := "[color=#1e6b2c]+ Sueldo del día: +%d[/color]" % salary
+	var salary_line := "[color=#1e6b2c]+ Sueldo del dia: +%d[/color]" % salary
 	if timed_out:
-		salary_line = "[color=#1e6b2c]+ Sueldo (penalización tiempo): +%d[/color]" % salary
+		salary_line = "[color=#1e6b2c]+ Sueldo (penalizacion): +%d[/color]" % salary
 
 	var lines: Array[String] = [
-		"Oro inicial: %d" % prev_money,
+		"Oro inicial: $%d" % prev_money,
 		salary_line,
-		"[color=#1e6b2c]+ Bono por arrestos: +%d (%d x $%d)[/color]" % [arrest_bonus, arrests, arrest_rate],
+		"[color=#1e6b2c]+ Bono arresto: +%d (%dx$%d)[/color]" % [arrest_bonus, arrests, arrest_rate],
 		"[color=#8a1c1c]- Comida y sustento: -%d[/color]" % food_cost,
 	]
 	lines.append_array(event_lines)
-	lines.append("----------------------------")
-	lines.append("[b]Oro resultante: %d[/b]" % maxi(new_money, 0))
+	lines.append("----------------")
+	lines.append("[color=#1a386b]Oro resultante: $%d[/color]" % maxi(new_money, 0))
 
 	var is_game_over := new_money <= 0
 	var is_game_win := not is_game_over and day >= GameManagerClass.MAX_DAYS
