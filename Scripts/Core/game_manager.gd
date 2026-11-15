@@ -10,10 +10,14 @@ const MAX_DAYS := 5
 
 var current_day: int = 1
 var money: int = STARTING_MONEY
+var honor: int = 0
 var npcs_today_count: int = 4
 var current_npc_index: int = 0
 var arrests_today: int = 0
 var charges_today: int = 0
+var stolen_value_today: int = 0
+var stolen_count_today: int = 0
+var desk_items: Array = []
 var day_time_remaining: float = 60.0
 var book_page: int = 1
 var arrest_reward_today: int = 5
@@ -30,10 +34,14 @@ func get_day_duration(day: int) -> float:
 func start_new_game() -> void:
 	current_day = 1
 	money = STARTING_MONEY
+	honor = 0
 	npcs_today_count = randi_range(4, 5)
 	current_npc_index = 0
 	arrests_today = 0
 	charges_today = 0
+	stolen_value_today = 0
+	stolen_count_today = 0
+	desk_items = []
 	day_time_remaining = get_day_duration(current_day)
 	book_page = 1
 	arrest_reward_today = randi_range(4, 7)
@@ -50,6 +58,9 @@ func advance_to_next_day() -> void:
 	current_npc_index = 0
 	arrests_today = 0
 	charges_today = 0
+	stolen_value_today = 0
+	stolen_count_today = 0
+	desk_items = []
 	day_time_remaining = get_day_duration(current_day)
 	arrest_reward_today = randi_range(4, 7)
 	save_game()
@@ -61,10 +72,14 @@ func save_game() -> void:
 	var data := {
 		"current_day": current_day,
 		"money": money,
+		"honor": honor,
 		"npcs_today_count": npcs_today_count,
 		"current_npc_index": current_npc_index,
 		"arrests_today": arrests_today,
 		"charges_today": charges_today,
+		"stolen_value_today": stolen_value_today,
+		"stolen_count_today": stolen_count_today,
+		"desk_items": desk_items,
 		"day_time_remaining": day_time_remaining,
 		"book_page": book_page,
 		"arrest_reward_today": arrest_reward_today,
@@ -93,10 +108,15 @@ func load_game() -> bool:
 	var data := parsed as Dictionary
 	current_day = int(data.get("current_day", 1))
 	money = int(data.get("money", STARTING_MONEY))
+	honor = clampi(int(data.get("honor", 0)), -100, 100)
 	npcs_today_count = int(data.get("npcs_today_count", 4))
 	current_npc_index = int(data.get("current_npc_index", 0))
 	arrests_today = int(data.get("arrests_today", 0))
 	charges_today = int(data.get("charges_today", 0))
+	stolen_value_today = int(data.get("stolen_value_today", 0))
+	stolen_count_today = int(data.get("stolen_count_today", 0))
+	var saved_items: Variant = data.get("desk_items", [])
+	desk_items = saved_items if saved_items is Array else []
 	day_time_remaining = float(data.get("day_time_remaining", get_day_duration(current_day)))
 	book_page = clampi(int(data.get("book_page", 1)), 1, 4)
 	arrest_reward_today = int(data.get("arrest_reward_today", randi_range(4, 7)))
