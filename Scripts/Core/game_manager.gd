@@ -15,6 +15,7 @@ var current_npc_index: int = 0
 var arrests_today: int = 0
 var charges_today: int = 0
 var day_time_remaining: float = 60.0
+var book_page: int = 1
 
 var total_charged: int = 0
 var total_arrested: int = 0
@@ -33,6 +34,7 @@ func start_new_game() -> void:
 	arrests_today = 0
 	charges_today = 0
 	day_time_remaining = get_day_duration(current_day)
+	book_page = 1
 	total_charged = 0
 	total_arrested = 0
 	total_earned = 0
@@ -61,6 +63,7 @@ func save_game() -> void:
 		"arrests_today": arrests_today,
 		"charges_today": charges_today,
 		"day_time_remaining": day_time_remaining,
+		"book_page": book_page,
 		"total_charged": total_charged,
 		"total_arrested": total_arrested,
 		"total_earned": total_earned,
@@ -91,6 +94,7 @@ func load_game() -> bool:
 	arrests_today = int(data.get("arrests_today", 0))
 	charges_today = int(data.get("charges_today", 0))
 	day_time_remaining = float(data.get("day_time_remaining", get_day_duration(current_day)))
+	book_page = clampi(int(data.get("book_page", 1)), 1, 5)
 	total_charged = int(data.get("total_charged", 0))
 	total_arrested = int(data.get("total_arrested", 0))
 	total_earned = int(data.get("total_earned", 0))
