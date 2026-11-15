@@ -20,6 +20,7 @@ var stolen_count_today: int = 0
 var desk_items: Array = []
 var day_time_remaining: float = 60.0
 var book_page: int = 1
+var last_day_timed_out: bool = false
 var arrest_reward_today: int = 5
 
 var total_charged: int = 0
@@ -44,6 +45,7 @@ func start_new_game() -> void:
 	desk_items = []
 	day_time_remaining = get_day_duration(current_day)
 	book_page = 1
+	last_day_timed_out = false
 	arrest_reward_today = randi_range(4, 7)
 	total_charged = 0
 	total_arrested = 0
@@ -62,6 +64,7 @@ func advance_to_next_day() -> void:
 	stolen_count_today = 0
 	desk_items = []
 	day_time_remaining = get_day_duration(current_day)
+	last_day_timed_out = false
 	arrest_reward_today = randi_range(4, 7)
 	save_game()
 
