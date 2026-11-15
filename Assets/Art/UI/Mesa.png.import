@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dig0mic7jo1b8"
-path="res://.godot/imported/Plantilla_Ropa_1-Sombrero_A1.png-c94b96271637478cdc11fe059be076fc.ctex"
+uid="uid://dpp4y3kawrci5"
+path="res://.godot/imported/Mesa.png-a3c899cd3799c992b0c2400b113ec67d.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Art/Clothes/Plantilla_Ropa_1-Sombrero_A1.png"
-dest_files=["res://.godot/imported/Plantilla_Ropa_1-Sombrero_A1.png-c94b96271637478cdc11fe059be076fc.ctex"]
+source_file="res://Assets/Art/UI/Mesa.png"
+dest_files=["res://.godot/imported/Mesa.png-a3c899cd3799c992b0c2400b113ec67d.ctex"]
 
 [params]
 

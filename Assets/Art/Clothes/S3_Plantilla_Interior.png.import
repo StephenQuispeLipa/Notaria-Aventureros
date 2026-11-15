@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dpc27rscnkvti"
-path="res://.godot/imported/Plantilla_Ropa_1-Ropa_A1.png-5f2e0041475a069fbca58614d37275ac.ctex"
+uid="uid://b4qa7lc26wcxf"
+path="res://.godot/imported/S3_Plantilla_Interior.png-2ac58f4c5afd1eecb68902bd941d1655.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Art/Clothes/Plantilla_Ropa_1-Ropa_A1.png"
-dest_files=["res://.godot/imported/Plantilla_Ropa_1-Ropa_A1.png-5f2e0041475a069fbca58614d37275ac.ctex"]
+source_file="res://Assets/Art/Clothes/S3_Plantilla_Interior.png"
+dest_files=["res://.godot/imported/S3_Plantilla_Interior.png-2ac58f4c5afd1eecb68902bd941d1655.ctex"]
 
 [params]
 
