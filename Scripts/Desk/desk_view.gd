@@ -14,14 +14,15 @@ const VIGNETTE_RED := Color(0.95, 0.12, 0.12, 0.95)
 
 const NPC_CENTER_X: float = 221.0
 const NPC_EXIT_OFFSET: float = 75.0
-const BOOK_PEEK_Y: float = 290.0
-const BOOK_HOVER_Y: float = 264.0
+const BOOK_PEEK_Y: float = 264.0
+const BOOK_HOVER_Y: float = 200.0
 const ITEM_DEFAULT_POS := Vector2(253.0, 236.0)
 const VIEWPORT_SIZE := Vector2(570.0, 320.0)
 const LENS_GLASS_RADIUS: float = 28.0
 const RUNE_ALPHABET := "abcdefghijklmnopqrstuvwxyz"
 const RUNES_PER_ITEM := 10
 const MAX_ITEMS_PER_NPC := 3
+const MAX_BOOK_PAGES := 5
 
 const ITEM_SLOT_POSITIONS: Dictionary = {
 	1: [Vector2(282.0, 222.0)],
@@ -96,6 +97,7 @@ var _dragging_node: Control = null
 var _drag_offset: Vector2 = Vector2.ZERO
 var _item_slots: Array[Dictionary] = []
 var _runes: Array[Dictionary] = []
+var current_book_page: int = 1
 
 @onready var day_progress_label: Label = %DayProgressLabel
 @onready var npc_rect: Control = %NPCRect
@@ -113,6 +115,9 @@ var _runes: Array[Dictionary] = []
 @onready var book_overlay: Control = %BookOverlay
 @onready var book_backdrop: ColorRect = %BookBackdrop
 @onready var btn_close_book: Button = %BtnCloseBook
+@onready var btn_prev_page: Button = %BtnPrevPage
+@onready var btn_next_page: Button = %BtnNextPage
+@onready var book_page_label: Label = %BookPageLabel
 
 @onready var day_end_overlay: Control = %DayEndOverlay
 @onready var day_end_title: Label = %DayEndTitle
@@ -131,6 +136,8 @@ func _ready() -> void:
 	btn_book.mouse_entered.connect(_on_book_mouse_entered)
 	btn_book.mouse_exited.connect(_on_book_mouse_exited)
 	btn_close_book.pressed.connect(_close_book)
+	btn_prev_page.pressed.connect(_on_prev_page_pressed)
+	btn_next_page.pressed.connect(_on_next_page_pressed)
 	book_backdrop.gui_input.connect(_on_book_backdrop_gui_input)
 
 	btn_cobrar.pressed.connect(_on_cobrar_pressed)
@@ -311,12 +318,14 @@ func _start_current_day() -> void:
 	arrests_today = GameManager.arrests_today
 	charges_today = GameManager.charges_today
 	time_remaining = GameManager.day_time_remaining
+	current_book_page = clampi(GameManager.book_page, 1, MAX_BOOK_PAGES)
 	is_day_ending = false
 	_last_displayed_second = ceili(time_remaining)
 	_save_timer_accum = 0.0
 	day_end_overlay.visible = false
 	_set_vignette(Color.WHITE, 0.0)
 	_update_day_progress_label()
+	_update_book_page_ui()
 
 	if current_npc_index >= total_npcs:
 		_show_day_summary(false)
@@ -457,6 +466,7 @@ func _set_actions_enabled(enabled: bool) -> void:
 func _open_book() -> void:
 	if book_overlay.visible:
 		return
+	_update_book_page_ui()
 	book_overlay.visible = true
 	AudioManager.play_sfx(LIBRO_OPEN_SFX)
 
@@ -464,7 +474,32 @@ func _close_book() -> void:
 	if not book_overlay.visible:
 		return
 	book_overlay.visible = false
+	GameManager.book_page = current_book_page
+	GameManager.save_game()
 	AudioManager.play_sfx(LIBRO_CLOSE_SFX)
+
+func _on_prev_page_pressed() -> void:
+	if current_book_page <= 1:
+		return
+	current_book_page -= 1
+	GameManager.book_page = current_book_page
+	GameManager.save_game()
+	_update_book_page_ui()
+	AudioManager.play_sfx(LIBRO_OPEN_SFX)
+
+func _on_next_page_pressed() -> void:
+	if current_book_page >= MAX_BOOK_PAGES:
+		return
+	current_book_page += 1
+	GameManager.book_page = current_book_page
+	GameManager.save_game()
+	_update_book_page_ui()
+	AudioManager.play_sfx(LIBRO_OPEN_SFX)
+
+func _update_book_page_ui() -> void:
+	book_page_label.text = "Página %d/%d" % [current_book_page, MAX_BOOK_PAGES]
+	btn_prev_page.disabled = current_book_page <= 1
+	btn_next_page.disabled = current_book_page >= MAX_BOOK_PAGES
 
 func _on_book_backdrop_gui_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:

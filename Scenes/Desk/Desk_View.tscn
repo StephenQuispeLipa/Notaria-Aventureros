@@ -14,6 +14,9 @@
 [ext_resource type="Shader" uid="uid://df2u2dlj2di5d" path="res://Shaders/magic_lens_mask.gdshader" id="10_lens_mask_shader"]
 [ext_resource type="Texture2D" path="res://Assets/Art/Items/PlantillaEscudo_Interior.png" id="11_escudo_int"]
 [ext_resource type="Texture2D" path="res://Assets/Art/Items/PlantillaEscudo_Borde.png" id="12_escudo_borde"]
+[ext_resource type="Texture2D" path="res://Assets/Art/Items/PlantillaLibro_Libro_Interior.png" id="13_libro_int"]
+[ext_resource type="Texture2D" path="res://Assets/Art/Items/PlantillaLibro_Libro_Borde.png" id="14_libro_borde"]
+[ext_resource type="Texture2D" path="res://Assets/Art/Items/libro-reglas-open.png" id="15_libro_open"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_item_lens"]
 shader = ExtResource("9_lens_item_shader")
@@ -254,20 +257,56 @@ text = "ARRESTAR"
 [node name="BtnBook" type="Button" parent="." unique_id=1936746714]
 unique_name_in_owner = true
 layout_mode = 0
-offset_left = 490.0
-offset_top = 290.0
-offset_right = 546.0
-offset_bottom = 354.0
+offset_left = 416.0
+offset_top = 264.0
+offset_right = 560.0
+offset_bottom = 408.0
 focus_mode = 0
-theme_override_colors/font_color = Color(0.95, 0.9, 0.8, 1)
-theme_override_colors/font_hover_color = Color(1, 0.92, 0.5, 1)
+mouse_default_cursor_shape = 2
+flat = true
+
+[node name="BookTabInterior" type="TextureRect" parent="BtnBook"]
+self_modulate = Color(0.52, 0.33, 0.2, 1)
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("13_libro_int")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BookTabBorde" type="TextureRect" parent="BtnBook"]
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("14_libro_borde")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BookTabTitle" type="Label" parent="BtnBook"]
+layout_mode = 0
+offset_left = 34.0
+offset_top = 32.0
+offset_right = 110.0
+offset_bottom = 58.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.95, 0.8, 0.24, 1)
+theme_override_colors/font_outline_color = Color(0.18, 0.1, 0.04, 1)
+theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("4_silver")
 theme_override_font_sizes/font_size = 16
-theme_override_styles/normal = SubResource("StyleBoxFlat_book")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_book_hover")
-theme_override_styles/hover = SubResource("StyleBoxFlat_book_hover")
-text = "[Libro
-56x64]"
+text = "Politicas"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="MagicLens" type="TextureRect" parent="." unique_id=606100934]
 unique_name_in_owner = true
@@ -318,7 +357,8 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.55)
 
-[node name="BookPanel" type="ColorRect" parent="BookOverlay" unique_id=39136098]
+[node name="BookPanel" type="TextureRect" parent="BookOverlay" unique_id=39136098]
+texture_filter = 1
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -331,43 +371,106 @@ offset_right = 190.0
 offset_bottom = 130.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0.89, 0.81, 0.67, 1)
+texture = ExtResource("15_libro_open")
+stretch_mode = 3
 
-[node name="BookLabel" type="Label" parent="BookOverlay/BookPanel" unique_id=1337602651]
+[node name="BookPages" type="HBoxContainer" parent="BookOverlay/BookPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_bottom = -36.0
+offset_left = 24.0
+offset_top = 18.0
+offset_right = -24.0
+offset_bottom = -64.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_colors/font_color = Color(0.24, 0.14, 0.16, 1)
-theme_override_fonts/font = ExtResource("4_silver")
+theme_override_constants/separation = 24
+
+[node name="LeftPage" type="VBoxContainer" parent="BookOverlay/BookPanel/BookPages"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="RightPage" type="VBoxContainer" parent="BookOverlay/BookPanel/BookPages"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BookNav" type="HBoxContainer" parent="BookOverlay/BookPanel"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 34.0
+offset_top = -62.0
+offset_right = -34.0
+offset_bottom = -36.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 1
+
+[node name="BtnPrevPage" type="Button" parent="BookOverlay/BookPanel/BookNav"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 0)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
+theme_override_colors/font_hover_color = Color(0.65, 0.25, 0.25, 1)
+theme_override_colors/font_disabled_color = Color(0.55, 0.45, 0.35, 0.45)
+theme_override_fonts/font = ExtResource("3_mono")
 theme_override_font_sizes/font_size = 16
-text = "[Libro Abierto 380x260]"
+text = "<="
+flat = true
+
+[node name="SpacerLeft" type="Control" parent="BookOverlay/BookPanel/BookNav"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BookPageLabel" type="Label" parent="BookOverlay/BookPanel/BookNav"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
+theme_override_fonts/font = ExtResource("3_mono")
+theme_override_font_sizes/font_size = 16
+text = "Página 1/5"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="BtnCloseBook" type="Button" parent="BookOverlay/BookPanel" unique_id=1368042098]
+[node name="SpacerMid" type="Control" parent="BookOverlay/BookPanel/BookNav"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnCloseBook" type="Button" parent="BookOverlay/BookPanel/BookNav" unique_id=1368042098]
 unique_name_in_owner = true
-layout_mode = 1
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -45.0
-offset_top = -34.0
-offset_right = 45.0
-offset_bottom = -8.0
-grow_horizontal = 2
-grow_vertical = 0
+layout_mode = 2
 focus_mode = 0
+mouse_default_cursor_shape = 2
 theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
 theme_override_colors/font_hover_color = Color(0.65, 0.25, 0.25, 1)
 theme_override_fonts/font = ExtResource("3_mono")
 theme_override_font_sizes/font_size = 16
 text = "CERRAR"
+flat = true
+
+[node name="SpacerRight" type="Control" parent="BookOverlay/BookPanel/BookNav"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BtnNextPage" type="Button" parent="BookOverlay/BookPanel/BookNav"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 0)
+layout_mode = 2
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
+theme_override_colors/font_hover_color = Color(0.65, 0.25, 0.25, 1)
+theme_override_colors/font_disabled_color = Color(0.55, 0.45, 0.35, 0.45)
+theme_override_fonts/font = ExtResource("3_mono")
+theme_override_font_sizes/font_size = 16
+text = "=>"
 flat = true
 
 [node name="DayEndOverlay" type="Control" parent="." unique_id=1000508036]
