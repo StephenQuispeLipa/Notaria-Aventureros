@@ -93,14 +93,17 @@ func _set_bus_volume(bus_idx: int, linear_val: float) -> void:
 func _on_master_changed(value: float) -> void:
 	_set_bus_volume(bus_master_idx, value)
 	val_master.text = "%d%%" % int(value * 100)
+	GameManager.save_settings()
 
 func _on_bgm_changed(value: float) -> void:
 	_set_bus_volume(bus_bgm_idx, value)
 	val_bgm.text = "%d%%" % int(value * 100)
+	GameManager.save_settings()
 
 func _on_sfx_changed(value: float) -> void:
 	_set_bus_volume(bus_sfx_idx, value)
 	val_sfx.text = "%d%%" % int(value * 100)
+	GameManager.save_settings()
 
 func _is_window_fullscreen() -> bool:
 	var mode = DisplayServer.window_get_mode()
@@ -115,6 +118,7 @@ func _on_fullscreen_pressed() -> void:
 	else:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN)
 	_update_fullscreen_button()
+	GameManager.save_settings()
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("ui_cancel"):
