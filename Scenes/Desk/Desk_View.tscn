@@ -12,16 +12,17 @@
 [ext_resource type="Texture2D" uid="uid://b660v63vpcjh2" path="res://Assets/Art/UI/Lente_prueba.png" id="8_lente_prueba"]
 [ext_resource type="Shader" uid="uid://b4ekisychwsvo" path="res://Shaders/magic_lens_item.gdshader" id="9_lens_item_shader"]
 [ext_resource type="Shader" uid="uid://df2u2dlj2di5d" path="res://Shaders/magic_lens_mask.gdshader" id="10_lens_mask_shader"]
-[ext_resource type="Texture2D" path="res://Assets/Art/Items/PlantillaEscudo_Interior.png" id="11_escudo_int"]
-[ext_resource type="Texture2D" path="res://Assets/Art/Items/PlantillaEscudo_Borde.png" id="12_escudo_borde"]
-[ext_resource type="Texture2D" path="res://Assets/Art/Items/PlantillaLibro_Libro_Interior.png" id="13_libro_int"]
-[ext_resource type="Texture2D" path="res://Assets/Art/Items/PlantillaLibro_Libro_Borde.png" id="14_libro_borde"]
-[ext_resource type="Texture2D" path="res://Assets/Art/Items/libro-reglas-open.png" id="15_libro_open"]
+[ext_resource type="Texture2D" uid="uid://cd4n6ltfbimli" path="res://Assets/Art/Items/PlantillaEscudo_Interior.png" id="11_escudo_int"]
+[ext_resource type="Texture2D" uid="uid://b6hdsvnep2xqi" path="res://Assets/Art/Items/PlantillaEscudo_Borde.png" id="12_escudo_borde"]
+[ext_resource type="Texture2D" uid="uid://djhp0u6n3tfc8" path="res://Assets/Art/Items/PlantillaLibro_Libro_Interior.png" id="13_libro_int"]
+[ext_resource type="Texture2D" uid="uid://pjtfxysn6sqj" path="res://Assets/Art/Items/PlantillaLibro_Libro_Borde.png" id="14_libro_borde"]
+[ext_resource type="Texture2D" uid="uid://cbk45jqqoqpjb" path="res://Assets/Art/Items/libro-reglas-open.png" id="15_libro_open"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_item_lens"]
 shader = ExtResource("9_lens_item_shader")
 shader_parameter/lens_center_px = Vector2(-999, -999)
 shader_parameter/lens_radius_px = 28.0
+shader_parameter/viewport_size = Vector2(570, 320)
 shader_parameter/tint_color = Color(0.62, 0.2, 0.9, 1)
 shader_parameter/tint_strength = 0.78
 
@@ -62,22 +63,6 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(1, 0.85, 0.85, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_book"]
-bg_color = Color(0.42, 0.18, 0.18, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.2, 0.08, 0.08, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_book_hover"]
-bg_color = Color(0.55, 0.24, 0.24, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.95, 0.85, 0.4, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_vignette"]
 shader = ExtResource("5_vignette_shader")
@@ -157,14 +142,14 @@ texture = ExtResource("6_pxxjb")
 [node name="ItemRect" type="Control" parent="." unique_id=1986333800]
 unique_name_in_owner = true
 clip_contents = true
-layout_mode = 0
+anchors_preset = 0
 offset_left = 237.0
 offset_top = 222.0
 offset_right = 333.0
 offset_bottom = 318.0
 mouse_default_cursor_shape = 2
 
-[node name="ItemInterior" type="TextureRect" parent="ItemRect"]
+[node name="ItemInterior" type="TextureRect" parent="ItemRect" unique_id=31994483]
 clip_children = 2
 texture_filter = 1
 material = SubResource("ShaderMaterial_item_lens")
@@ -183,11 +168,8 @@ stretch_mode = 5
 unique_name_in_owner = true
 material = SubResource("ShaderMaterial_rune_mask")
 layout_mode = 0
-offset_left = 0.0
-offset_top = 0.0
 offset_right = 14.0
 offset_bottom = 18.0
-mouse_filter = 2
 theme_override_colors/font_color = Color(1, 0.92, 0.2, 1)
 theme_override_colors/font_outline_color = Color(0.18, 0.05, 0.28, 1)
 theme_override_constants/outline_size = 2
@@ -195,7 +177,7 @@ theme_override_fonts/font = ExtResource("3_mono")
 theme_override_font_sizes/font_size = 16
 text = "a"
 
-[node name="ItemBorde" type="TextureRect" parent="ItemRect"]
+[node name="ItemBorde" type="TextureRect" parent="ItemRect" unique_id=1469697710]
 texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
@@ -208,7 +190,7 @@ texture = ExtResource("12_escudo_borde")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ItemDecoracion" type="TextureRect" parent="ItemRect"]
+[node name="ItemDecoracion" type="TextureRect" parent="ItemRect" unique_id=1346802250]
 texture_filter = 1
 material = SubResource("ShaderMaterial_item_lens")
 layout_mode = 0
@@ -265,7 +247,7 @@ focus_mode = 0
 mouse_default_cursor_shape = 2
 flat = true
 
-[node name="BookTabInterior" type="TextureRect" parent="BtnBook"]
+[node name="BookTabInterior" type="TextureRect" parent="BtnBook" unique_id=116307292]
 self_modulate = Color(0.52, 0.33, 0.2, 1)
 texture_filter = 1
 layout_mode = 1
@@ -279,7 +261,7 @@ texture = ExtResource("13_libro_int")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="BookTabBorde" type="TextureRect" parent="BtnBook"]
+[node name="BookTabBorde" type="TextureRect" parent="BtnBook" unique_id=138987301]
 texture_filter = 1
 layout_mode = 1
 anchors_preset = 15
@@ -292,13 +274,12 @@ texture = ExtResource("14_libro_borde")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="BookTabTitle" type="Label" parent="BtnBook"]
+[node name="BookTabTitle" type="Label" parent="BtnBook" unique_id=1957718038]
 layout_mode = 0
 offset_left = 34.0
 offset_top = 32.0
 offset_right = 110.0
 offset_bottom = 58.0
-mouse_filter = 2
 theme_override_colors/font_color = Color(0.95, 0.8, 0.24, 1)
 theme_override_colors/font_outline_color = Color(0.18, 0.1, 0.04, 1)
 theme_override_constants/outline_size = 2
@@ -331,8 +312,8 @@ material = SubResource("ShaderMaterial_vignette")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 11.0
-offset_right = 11.0
+offset_left = 1.0
+offset_right = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -374,7 +355,7 @@ grow_vertical = 2
 texture = ExtResource("15_libro_open")
 stretch_mode = 3
 
-[node name="BookPages" type="HBoxContainer" parent="BookOverlay/BookPanel"]
+[node name="BookPages" type="HBoxContainer" parent="BookOverlay/BookPanel" unique_id=1225882971]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -387,17 +368,17 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 24
 
-[node name="LeftPage" type="VBoxContainer" parent="BookOverlay/BookPanel/BookPages"]
+[node name="LeftPage" type="VBoxContainer" parent="BookOverlay/BookPanel/BookPages" unique_id=837269344]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="RightPage" type="VBoxContainer" parent="BookOverlay/BookPanel/BookPages"]
+[node name="RightPage" type="VBoxContainer" parent="BookOverlay/BookPanel/BookPages" unique_id=1280733349]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="BookNav" type="HBoxContainer" parent="BookOverlay/BookPanel"]
+[node name="BookNav" type="HBoxContainer" parent="BookOverlay/BookPanel" unique_id=1917963548]
 layout_mode = 1
 anchors_preset = 12
 anchor_top = 1.0
@@ -411,7 +392,7 @@ grow_horizontal = 2
 grow_vertical = 0
 alignment = 1
 
-[node name="BtnPrevPage" type="Button" parent="BookOverlay/BookPanel/BookNav"]
+[node name="BtnPrevPage" type="Button" parent="BookOverlay/BookPanel/BookNav" unique_id=1424902059]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(36, 0)
 layout_mode = 2
@@ -425,11 +406,11 @@ theme_override_font_sizes/font_size = 16
 text = "<="
 flat = true
 
-[node name="SpacerLeft" type="Control" parent="BookOverlay/BookPanel/BookNav"]
+[node name="SpacerLeft" type="Control" parent="BookOverlay/BookPanel/BookNav" unique_id=448424738]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="BookPageLabel" type="Label" parent="BookOverlay/BookPanel/BookNav"]
+[node name="BookPageLabel" type="Label" parent="BookOverlay/BookPanel/BookNav" unique_id=1543328517]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.28, 0.17, 0.19, 1)
@@ -439,7 +420,7 @@ text = "Página 1/5"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="SpacerMid" type="Control" parent="BookOverlay/BookPanel/BookNav"]
+[node name="SpacerMid" type="Control" parent="BookOverlay/BookPanel/BookNav" unique_id=1351026558]
 layout_mode = 2
 size_flags_horizontal = 3
 
@@ -455,11 +436,11 @@ theme_override_font_sizes/font_size = 16
 text = "CERRAR"
 flat = true
 
-[node name="SpacerRight" type="Control" parent="BookOverlay/BookPanel/BookNav"]
+[node name="SpacerRight" type="Control" parent="BookOverlay/BookPanel/BookNav" unique_id=1492319530]
 layout_mode = 2
 size_flags_horizontal = 3
 
-[node name="BtnNextPage" type="Button" parent="BookOverlay/BookPanel/BookNav"]
+[node name="BtnNextPage" type="Button" parent="BookOverlay/BookPanel/BookNav" unique_id=714540186]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(36, 0)
 layout_mode = 2
@@ -471,103 +452,6 @@ theme_override_colors/font_disabled_color = Color(0.55, 0.45, 0.35, 0.45)
 theme_override_fonts/font = ExtResource("3_mono")
 theme_override_font_sizes/font_size = 16
 text = "=>"
-flat = true
-
-[node name="DayEndOverlay" type="Control" parent="." unique_id=1000508036]
-unique_name_in_owner = true
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Backdrop" type="ColorRect" parent="DayEndOverlay" unique_id=478532098]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 1)
-
-[node name="Margin" type="MarginContainer" parent="DayEndOverlay" unique_id=811321915]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/margin_left = 40
-theme_override_constants/margin_top = 20
-theme_override_constants/margin_right = 40
-theme_override_constants/margin_bottom = 20
-
-[node name="VBox" type="VBoxContainer" parent="DayEndOverlay/Margin" unique_id=1613275528]
-layout_mode = 2
-theme_override_constants/separation = 8
-alignment = 1
-
-[node name="DayEndTitle" type="Label" parent="DayEndOverlay/Margin/VBox" unique_id=675356087]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
-theme_override_fonts/font = ExtResource("3_mono")
-theme_override_font_sizes/font_size = 16
-text = "RESUMEN DEL DÍA 1"
-horizontal_alignment = 1
-
-[node name="DayEndLabel" type="RichTextLabel" parent="DayEndOverlay/Margin/VBox" unique_id=104823270]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_colors/default_color = Color(0.92, 0.86, 0.74, 1)
-theme_override_fonts/normal_font = ExtResource("3_mono")
-theme_override_font_sizes/normal_font_size = 16
-bbcode_enabled = true
-text = "Resumen"
-fit_content = true
-scroll_active = false
-autowrap_mode = 0
-horizontal_alignment = 1
-
-[node name="Buttons" type="HBoxContainer" parent="DayEndOverlay/Margin/VBox" unique_id=574579611]
-layout_mode = 2
-theme_override_constants/separation = 24
-alignment = 1
-
-[node name="BtnNextDay" type="Button" parent="DayEndOverlay/Margin/VBox/Buttons" unique_id=849837415]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-theme_override_colors/font_color = Color(0.7, 0.95, 0.65, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 0.5, 1)
-theme_override_fonts/font = ExtResource("3_mono")
-theme_override_font_sizes/font_size = 16
-text = "DÍA 2"
-flat = true
-
-[node name="BtnRestartDay" type="Button" parent="DayEndOverlay/Margin/VBox/Buttons" unique_id=195555865]
-unique_name_in_owner = true
-visible = false
-layout_mode = 2
-focus_mode = 0
-theme_override_colors/font_color = Color(0.7, 0.95, 0.65, 1)
-theme_override_colors/font_hover_color = Color(1, 1, 0.5, 1)
-theme_override_fonts/font = ExtResource("3_mono")
-theme_override_font_sizes/font_size = 16
-text = "REINTENTAR"
-flat = true
-
-[node name="BtnBackMenu" type="Button" parent="DayEndOverlay/Margin/VBox/Buttons" unique_id=1478136021]
-unique_name_in_owner = true
-layout_mode = 2
-focus_mode = 0
-theme_override_colors/font_color = Color(0.92, 0.86, 0.74, 1)
-theme_override_colors/font_hover_color = Color(0.95, 0.45, 0.45, 1)
-theme_override_fonts/font = ExtResource("3_mono")
-theme_override_font_sizes/font_size = 16
-text = "MENÚ"
 flat = true
 
 [node name="PauseMenu" parent="." unique_id=1238947580 instance=ExtResource("2_pause_menu")]

@@ -75,14 +75,6 @@ const WIZARD_COLORS: Array[Color] = [
 	Color(0.76, 0.74, 0.70, 1.0), # Gris claro
 ]
 
-const FAMILY_MEMBERS: Array[String] = ["Esposa", "Hijo", "Hija"]
-const ILLNESS_MIN_COST := 8
-const ILLNESS_MAX_COST := 14
-const ILLNESS_PROBABILITY := 0.25
-const EXTERNAL_EVENTS: Array[Dictionary] = [
-	{"name": "Deuda pendiente", "min_cost": 6, "max_cost": 12, "prob": 0.30},
-	{"name": "Robo en casa", "min_cost": 5, "max_cost": 10, "prob": 0.30},
-]
 
 var total_npcs: int = 4
 var current_npc_index: int = 0
@@ -119,17 +111,9 @@ var current_book_page: int = 1
 @onready var btn_next_page: Button = %BtnNextPage
 @onready var book_page_label: Label = %BookPageLabel
 
-@onready var day_end_overlay: Control = %DayEndOverlay
-@onready var day_end_title: Label = %DayEndTitle
-@onready var day_end_label: RichTextLabel = %DayEndLabel
-@onready var btn_next_day: Button = %BtnNextDay
-@onready var btn_restart_day: Button = %BtnRestartDay
-@onready var btn_back_menu: Button = %BtnBackMenu
-
 func _ready() -> void:
 	randomize()
 	book_overlay.visible = false
-	day_end_overlay.visible = false
 	_set_vignette(Color.WHITE, 0.0)
 
 	btn_book.pressed.connect(_open_book)
@@ -143,17 +127,13 @@ func _ready() -> void:
 	btn_cobrar.pressed.connect(_on_cobrar_pressed)
 	btn_arrestar.pressed.connect(_on_arrestar_pressed)
 
-	btn_next_day.pressed.connect(_on_next_day_pressed)
-	btn_restart_day.pressed.connect(_on_restart_game_pressed)
-	btn_back_menu.pressed.connect(_on_back_menu_pressed)
-
 	magic_lens.gui_input.connect(_on_draggable_gui_input.bind(magic_lens))
 
 	_setup_items()
 	_start_current_day()
 
 func _process(delta: float) -> void:
-	if day_end_overlay.visible or is_day_ending:
+	if is_day_ending:
 		return
 
 	_update_runes(delta)
@@ -181,7 +161,7 @@ func _process(delta: float) -> void:
 		_show_day_summary(true)
 
 func _exit_tree() -> void:
-	if not day_end_overlay.visible and not is_day_ending and GameManager.has_save():
+	if not is_day_ending and GameManager.has_save():
 		GameManager.day_time_remaining = time_remaining
 		GameManager.current_npc_index = current_npc_index
 		GameManager.arrests_today = arrests_today
@@ -193,7 +173,7 @@ func _input(event: InputEvent) -> void:
 		_dragging_node = null
 
 func _on_draggable_gui_input(event: InputEvent, target: Control) -> void:
-	if is_day_ending or day_end_overlay.visible or book_overlay.visible:
+	if is_day_ending or book_overlay.visible:
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		if event.pressed:
@@ -293,7 +273,7 @@ func _update_runes(delta: float) -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_SPACE:
-		if not day_end_overlay.visible and not is_day_ending:
+		if not is_day_ending:
 			if book_overlay.visible:
 				_close_book()
 			else:
@@ -322,7 +302,6 @@ func _start_current_day() -> void:
 	is_day_ending = false
 	_last_displayed_second = ceili(time_remaining)
 	_save_timer_accum = 0.0
-	day_end_overlay.visible = false
 	_set_vignette(Color.WHITE, 0.0)
 	_update_day_progress_label()
 	_update_book_page_ui()
@@ -507,102 +486,9 @@ func _on_book_backdrop_gui_input(event: InputEvent) -> void:
 
 func _show_day_summary(timed_out: bool = false) -> void:
 	is_day_ending = true
-	var prev_money := GameManager.money
-	var salary := floori(GameManagerClass.FIXED_DAILY_SALARY / 2.0) if timed_out else GameManagerClass.FIXED_DAILY_SALARY
-	var arrest_rate := randi_range(4, 7)
-	var arrest_bonus := arrests_today * arrest_rate
-	var food_cost := randi_range(10, 16)
-
-	var event_cost := 0
-	var event_lines: Array[String] = []
-	var has_sick_family := false
-
-	for member in FAMILY_MEMBERS:
-		if randf() < ILLNESS_PROBABILITY:
-			var cost := randi_range(ILLNESS_MIN_COST, ILLNESS_MAX_COST)
-			event_cost += cost
-			event_lines.append("[color=#e05555]- Enfermedad (%s): -%d[/color]" % [member, cost])
-			GameManager.total_events += 1
-			has_sick_family = true
-
-	for ev in EXTERNAL_EVENTS:
-		if randf() < float(ev["prob"]):
-			var cost := randi_range(int(ev["min_cost"]), int(ev["max_cost"]))
-			event_cost += cost
-			event_lines.append("[color=#e05555]- %s: -%d[/color]" % [ev["name"], cost])
-			GameManager.total_events += 1
-
-	var day_income := salary + arrest_bonus
-	var day_expenses := food_cost + event_cost
-	var new_money := prev_money + day_income - day_expenses
-
-	GameManager.money = new_money
-	GameManager.total_earned += day_income
-	GameManager.total_spent += day_expenses
-
-	var salary_line := "[color=#66e066]+ Sueldo de hoy: +%d[/color]" % salary
-	if timed_out:
-		salary_line = "[color=#66e066]+ Sueldo de hoy (tiempo agotado 50%%): +%d[/color]" % salary
-
-	var summary_lines: Array[String] = [
-		"Dinero actual: %d" % prev_money,
-		salary_line,
-		"[color=#66e066]+ Ingreso extra (arrestos): +%d (%d x %d)[/color]" % [arrest_bonus, arrests_today, arrest_rate],
-		"[color=#e05555]- Comida para la familia: -%d[/color]" % food_cost,
-	]
-	summary_lines.append_array(event_lines)
-	summary_lines.append("------------------------------")
-	summary_lines.append("Dinero resultante: %d" % maxi(new_money, 0))
-
-	if new_money <= 0:
-		GameManager.delete_save()
-		day_end_title.text = "FIN DEL JUEGO (Sin dinero)"
-		summary_lines.append("")
-		summary_lines.append("Días alcanzados: %d/%d | Cobros: %d | Arrestos: %d" % [
-			GameManager.current_day,
-			GameManagerClass.MAX_DAYS,
-			GameManager.total_charged,
-			GameManager.total_arrested,
-		])
-		summary_lines.append("[color=#66e066]Ingresos: +%d[/color] | [color=#e05555]Gastos: -%d[/color] | Eventos: %d" % [
-			GameManager.total_earned,
-			GameManager.total_spent,
-			GameManager.total_events,
-		])
-		btn_next_day.visible = false
-		btn_restart_day.visible = true
-		btn_restart_day.text = "REINTENTAR"
-	elif GameManager.current_day >= GameManagerClass.MAX_DAYS:
-		GameManager.delete_save()
-		day_end_title.text = "¡JUEGO COMPLETADO! (Día 5)"
-		summary_lines.append("")
-		summary_lines.append("=== ESTADÍSTICAS FINALES ===")
-		summary_lines.append("Dinero final: %d | Eventos sufridos: %d" % [new_money, GameManager.total_events])
-		summary_lines.append("Total cobrados: %d | Total arrestados: %d" % [GameManager.total_charged, GameManager.total_arrested])
-		summary_lines.append("[color=#66e066]Ingresos totales: +%d[/color] | [color=#e05555]Gastos totales: -%d[/color]" % [GameManager.total_earned, GameManager.total_spent])
-		btn_next_day.visible = false
-		btn_restart_day.visible = true
-		btn_restart_day.text = "JUGAR DE NUEVO"
-	else:
-		GameManager.advance_to_next_day()
-		day_end_title.text = "RESUMEN DEL DÍA %d" % (GameManager.current_day - 1)
-		btn_next_day.visible = true
-		btn_next_day.text = "DÍA %d" % GameManager.current_day
-		btn_restart_day.visible = false
-
-	day_end_label.text = "\n".join(summary_lines)
-	day_end_overlay.visible = true
-
-	AudioManager.play_sfx(ESCRITURA_SFX)
-	if has_sick_family:
-		AudioManager.play_sfx(TOS_SFX)
-
-func _on_next_day_pressed() -> void:
-	_start_current_day()
-
-func _on_restart_game_pressed() -> void:
-	GameManager.start_new_game()
-	_start_current_day()
-
-func _on_back_menu_pressed() -> void:
-	get_tree().change_scene_to_file("res://Scenes/Menus/OptionsMenu.tscn")
+	GameManager.last_day_timed_out = timed_out
+	GameManager.arrests_today = arrests_today
+	GameManager.charges_today = charges_today
+	GameManager.current_npc_index = current_npc_index
+	GameManager.save_game()
+	get_tree().change_scene_to_file("res://Scenes/Flow/Day_Summary.tscn")

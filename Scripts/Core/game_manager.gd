@@ -16,6 +16,7 @@ var arrests_today: int = 0
 var charges_today: int = 0
 var day_time_remaining: float = 60.0
 var book_page: int = 1
+var last_day_timed_out: bool = false
 
 var total_charged: int = 0
 var total_arrested: int = 0
@@ -35,6 +36,7 @@ func start_new_game() -> void:
 	charges_today = 0
 	day_time_remaining = get_day_duration(current_day)
 	book_page = 1
+	last_day_timed_out = false
 	total_charged = 0
 	total_arrested = 0
 	total_earned = 0
@@ -49,6 +51,7 @@ func advance_to_next_day() -> void:
 	arrests_today = 0
 	charges_today = 0
 	day_time_remaining = get_day_duration(current_day)
+	last_day_timed_out = false
 	save_game()
 
 func has_save() -> bool:
