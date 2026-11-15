@@ -32,6 +32,38 @@ const ITEM_SLOT_POSITIONS: Dictionary = {
 }
 
 const DECORACIONES_SHEET: Texture2D = preload("res://Assets/Art/Items/Decoraciones-Sheet.png")
+const MAGO_INTERIOR_TEX: Texture2D = preload("res://Assets/Art/Characters/Mago_Plantilla-Interior.png")
+const MAGO_BORDE_TEX: Texture2D = preload("res://Assets/Art/Characters/Mago_Plantilla-Borde.png")
+
+const NPC_CLOTHES: Array[Dictionary] = [
+	{
+		"interior": preload("res://Assets/Art/Clothes/R1_Plantilla_Interior.png"),
+		"borde": preload("res://Assets/Art/Clothes/R1_Plantilla_Bordes.png"),
+	},
+	{
+		"interior": preload("res://Assets/Art/Clothes/R2_Plantilla_Interior.png"),
+		"borde": preload("res://Assets/Art/Clothes/R2_Plantilla_Borde.png"),
+	},
+	{
+		"interior": preload("res://Assets/Art/Clothes/R3_Plantilla_Interior.png"),
+		"borde": preload("res://Assets/Art/Clothes/R3_Plantilla_Borde.png"),
+	},
+]
+
+const NPC_HATS: Array[Dictionary] = [
+	{
+		"interior": preload("res://Assets/Art/Clothes/S1_Plantilla_Interior.png"),
+		"borde": preload("res://Assets/Art/Clothes/S1_Plantilla_Bordes.png"),
+	},
+	{
+		"interior": preload("res://Assets/Art/Clothes/S2_Plantilla_Interior.png"),
+		"borde": preload("res://Assets/Art/Clothes/S2_Plantilla_Borde.png"),
+	},
+	{
+		"interior": preload("res://Assets/Art/Clothes/S3_Plantilla_Interior.png"),
+		"borde": preload("res://Assets/Art/Clothes/S3_Plantilla_Borde.png"),
+	},
+]
 
 const ITEM_TEMPLATES: Array[Dictionary] = [
 	{
@@ -108,7 +140,11 @@ var current_book_page: int = 1
 
 @onready var day_progress_label: Label = %DayProgressLabel
 @onready var npc_rect: Control = %NPCRect
+@onready var npc_persona: TextureRect = %NPCPersona
 @onready var npc_interior: TextureRect = %NPCInterior
+@onready var npc_sombrero_interior: TextureRect = %NPCSombreroInterior
+@onready var npc_borde: TextureRect = %NPCBorde
+@onready var npc_sombrero_borde: TextureRect = %NPCSombreroBorde
 @onready var item_rect: Control = %ItemRect
 @onready var rune_label: Label = %RuneLabel
 @onready var magic_lens: TextureRect = %MagicLens
@@ -466,7 +502,7 @@ func _start_current_day() -> void:
 	else:
 		is_transitioning = false
 		_set_actions_enabled(true)
-		npc_interior.modulate = WIZARD_COLORS.pick_random()
+		_randomize_npc_appearance()
 		npc_rect.position.x = NPC_CENTER_X
 		npc_rect.modulate.a = 1.0
 		_update_magic_lens_shaders()
@@ -486,6 +522,34 @@ func _update_day_progress_label() -> void:
 		GameManager.honor,
 	]
 
+func _randomize_npc_appearance() -> void:
+	var is_wizard := randf() < 0.5
+	var outfit_color: Color = WIZARD_COLORS.pick_random()
+	if is_wizard:
+		npc_persona.visible = false
+		npc_interior.texture = MAGO_INTERIOR_TEX
+		npc_interior.modulate = outfit_color
+		npc_interior.visible = true
+		npc_borde.texture = MAGO_BORDE_TEX
+		npc_borde.visible = true
+		npc_sombrero_interior.visible = false
+		npc_sombrero_borde.visible = false
+	else:
+		var ropa: Dictionary = NPC_CLOTHES.pick_random()
+		var sombrero: Dictionary = NPC_HATS.pick_random()
+		npc_persona.visible = true
+		npc_persona.modulate = Color.WHITE
+		npc_interior.texture = ropa["interior"]
+		npc_interior.modulate = outfit_color
+		npc_interior.visible = true
+		npc_sombrero_interior.texture = sombrero["interior"]
+		npc_sombrero_interior.modulate = outfit_color
+		npc_sombrero_interior.visible = true
+		npc_borde.texture = ropa["borde"]
+		npc_borde.visible = true
+		npc_sombrero_borde.texture = sombrero["borde"]
+		npc_sombrero_borde.visible = true
+
 func _spawn_current_npc() -> void:
 	is_transitioning = false
 	_set_actions_enabled(true)
@@ -493,7 +557,7 @@ func _spawn_current_npc() -> void:
 	_current_npc_items.clear()
 	_update_day_progress_label()
 
-	npc_interior.modulate = WIZARD_COLORS.pick_random()
+	_randomize_npc_appearance()
 
 	npc_rect.position.x = NPC_CENTER_X
 	npc_rect.modulate.a = 0.0
@@ -887,7 +951,7 @@ func _populate_book_categories_page(page: VBoxContainer) -> void:
 
 func _populate_book_day_page(page: VBoxContainer, day: int) -> void:
 	page.add_theme_constant_override("separation", 6)
-	var reward_line := "Pago por arresto: 4-7 monedas"
+	var reward_line := "Pago por arresto: %d monedas" % GameManager.get_arrest_reward_for_day(day)
 	if day == GameManager.current_day:
 		reward_line = "Pago por arresto hoy: %d monedas" % GameManager.arrest_reward_today
 

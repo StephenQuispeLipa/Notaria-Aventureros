@@ -22,6 +22,7 @@ var day_time_remaining: float = 60.0
 var book_page: int = 1
 var last_day_timed_out: bool = false
 var arrest_reward_today: int = 5
+var daily_arrest_rewards: Dictionary = {}
 
 var total_charged: int = 0
 var total_arrested: int = 0
@@ -47,6 +48,7 @@ func start_new_game() -> void:
 	book_page = 1
 	last_day_timed_out = false
 	arrest_reward_today = randi_range(4, 7)
+	daily_arrest_rewards = {str(current_day): arrest_reward_today}
 	total_charged = 0
 	total_arrested = 0
 	total_earned = 0
@@ -66,6 +68,7 @@ func advance_to_next_day() -> void:
 	day_time_remaining = get_day_duration(current_day)
 	last_day_timed_out = false
 	arrest_reward_today = randi_range(4, 7)
+	daily_arrest_rewards[str(current_day)] = arrest_reward_today
 	save_game()
 
 func has_save() -> bool:
@@ -86,6 +89,7 @@ func save_game() -> void:
 		"day_time_remaining": day_time_remaining,
 		"book_page": book_page,
 		"arrest_reward_today": arrest_reward_today,
+		"daily_arrest_rewards": daily_arrest_rewards,
 		"total_charged": total_charged,
 		"total_arrested": total_arrested,
 		"total_earned": total_earned,
@@ -123,12 +127,19 @@ func load_game() -> bool:
 	day_time_remaining = float(data.get("day_time_remaining", get_day_duration(current_day)))
 	book_page = clampi(int(data.get("book_page", 1)), 1, 4)
 	arrest_reward_today = int(data.get("arrest_reward_today", randi_range(4, 7)))
+	var saved_rewards: Variant = data.get("daily_arrest_rewards", {})
+	daily_arrest_rewards = saved_rewards if saved_rewards is Dictionary else {}
+	if not daily_arrest_rewards.has(str(current_day)):
+		daily_arrest_rewards[str(current_day)] = arrest_reward_today
 	total_charged = int(data.get("total_charged", 0))
 	total_arrested = int(data.get("total_arrested", 0))
 	total_earned = int(data.get("total_earned", 0))
 	total_spent = int(data.get("total_spent", 0))
 	total_events = int(data.get("total_events", 0))
 	return true
+
+func get_arrest_reward_for_day(day: int) -> int:
+	return int(daily_arrest_rewards.get(str(day), arrest_reward_today))
 
 func delete_save() -> void:
 	if has_save():

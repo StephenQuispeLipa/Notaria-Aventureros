@@ -18,6 +18,7 @@
 [ext_resource type="Texture2D" uid="uid://pjtfxysn6sqj" path="res://Assets/Art/Items/PlantillaLibro_Libro_Borde.png" id="14_libro_borde"]
 [ext_resource type="Texture2D" uid="uid://cbk45jqqoqpjb" path="res://Assets/Art/Items/libro-reglas-open.png" id="15_libro_open"]
 [ext_resource type="Script" path="res://Scripts/Desk/pixel_hit_item.gd" id="16_pixel_hit"]
+[ext_resource type="Texture2D" path="res://Assets/Art/Characters/Plantilla_Persona.png" id="17_persona"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_item_lens"]
 shader = ExtResource("9_lens_item_shader")
@@ -123,6 +124,19 @@ offset_top = 8.0
 offset_right = 356.0
 offset_bottom = 220.0
 
+[node name="NPCPersona" type="TextureRect" parent="NPCRect"]
+unique_name_in_owner = true
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("17_persona")
+expand_mode = 1
+stretch_mode = 5
+
 [node name="NPCInterior" type="TextureRect" parent="NPCRect" unique_id=830777390]
 unique_name_in_owner = true
 texture_filter = 1
@@ -136,6 +150,19 @@ texture = ExtResource("6_mago_interior")
 expand_mode = 1
 stretch_mode = 5
 
+[node name="NPCSombreroInterior" type="TextureRect" parent="NPCRect"]
+unique_name_in_owner = true
+visible = false
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
 [node name="NPCBorde" type="TextureRect" parent="NPCRect" unique_id=2108200875]
 unique_name_in_owner = true
 texture_filter = 1
@@ -146,6 +173,19 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("7_mago_borde")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NPCSombreroBorde" type="TextureRect" parent="NPCRect"]
+unique_name_in_owner = true
+visible = false
+texture_filter = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 expand_mode = 1
 stretch_mode = 5
 
