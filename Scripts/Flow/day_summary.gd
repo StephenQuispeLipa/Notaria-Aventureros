@@ -182,8 +182,7 @@ func _show_balance_page() -> void:
 		left_title.text = "¡JUEGO COMPLETADO!"
 		btn_next_day.visible = true
 		btn_next_day.text = "CONTINUAR ->"
-		btn_restart.visible = true
-		btn_restart.text = "JUGAR DE NUEVO"
+		btn_restart.visible = false
 	else:
 		left_title.text = "BALANCE DÍA %d" % day
 		btn_next_day.visible = true
@@ -286,25 +285,32 @@ func _build_ending_text(is_game_over: bool) -> String:
 
 	var title := ""
 	var body := ""
+	var ending_id := ""
 	if not is_game_over and has_carpinteria_book and has_alquimia_book:
+		ending_id = "5"
 		title = "FINAL 5: ALQUIMIA DE MADERA Y ORO"
 		body = "Tu hijo compro un monton de madera para practicar carpinteria, pero tu hija, que estaba practicando alquimia, convirtio toda esa madera en oro. Lograron escapar del reino tirano."
 	else:
 		var high_honor := GameManager.honor >= 30
 		var high_money := (not is_game_over) and GameManager.money >= 50
 		if not high_honor and high_money:
+			ending_id = "1"
 			title = "FINAL 1: FORTUNA MANCHADA"
 			body = "Poco honor, mucho dinero.\nTe hiciste rico a costa del pueblo."
 		elif high_honor and high_money:
+			ending_id = "2"
 			title = "FINAL 2: INTEGRIDAD INQUEBRANTABLE"
 			body = "Mucho honor, mucho dinero.\nLograste lo impensable: pudiste sobrevivir sin cometer ilegalidades."
 		elif not high_honor and not high_money:
+			ending_id = "3"
 			title = "FINAL 3: RUINA Y DESHONRA"
 			body = "Poco honor, poco dinero.\nCometiste ilegalidades, pero no sobreviviste al hambre."
 		else:
+			ending_id = "4"
 			title = "FINAL 4: HONRADEZ HUMILDE"
 			body = "Mucho honor, poco dinero.\nSobreviviste al hambre, pero apenas alcanzo para tu familia."
 
+	GameManager.unlock_ending(ending_id)
 	return "[center][color=#ffd27d]%s[/color]\n\n%s\n\n[color=#aaaaaa]FIN DE LA HISTORIA[/color][/center]" % [title, body]
 
 func _on_end_continue_pressed() -> void:

@@ -53,6 +53,7 @@ var bus_sfx_idx: int = 2
 
 @onready var audio_open: AudioStreamPlayer = %AudioOpen
 @onready var audio_close: AudioStreamPlayer = %AudioClose
+@onready var endings_label: Label = %EndingsLabel
 
 func _ready() -> void:
 	scroll_panel.visible = false
@@ -61,6 +62,7 @@ func _ready() -> void:
 	_setup_audio_buses()
 	_update_fullscreen_button()
 	_update_continue_button()
+	_update_endings_label()
 
 	slider_master.value_changed.connect(_on_master_changed)
 	slider_bgm.value_changed.connect(_on_bgm_changed)
@@ -87,6 +89,14 @@ func _ready() -> void:
 	for btn in sign_buttons:
 		btn.mouse_entered.connect(_on_sign_mouse_entered.bind(btn))
 		btn.mouse_exited.connect(_on_sign_mouse_exited.bind(btn))
+
+func _update_endings_label() -> void:
+	if not is_instance_valid(endings_label):
+		return
+	var count := GameManager.unlocked_endings.size()
+	endings_label.visible = count > 0
+	if count > 0:
+		endings_label.text = "Finales %d/5" % count
 
 func _setup_audio_buses() -> void:
 	bus_master_idx = AudioServer.get_bus_index("Master")
