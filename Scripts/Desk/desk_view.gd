@@ -694,8 +694,9 @@ func _resolve_npc(exit_offset_x: float, clear_npc_items: bool) -> void:
 	if clear_npc_items:
 		for entry in _current_npc_items:
 			_desk_items.erase(entry)
-			var ctrl := entry.get("ctrl") as Control
-			if is_instance_valid(ctrl):
+			var raw_ctrl: Variant = entry.get("ctrl")
+			if is_instance_valid(raw_ctrl):
+				var ctrl := raw_ctrl as Control
 				ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 				items_to_free.append(ctrl)
 				for i in range(_runes.size() - 1, -1, -1):
@@ -735,8 +736,9 @@ func _discard_pending_npc_on_timeout() -> void:
 	var items_to_free: Array[Control] = []
 	for entry in _current_npc_items:
 		_desk_items.erase(entry)
-		var ctrl := entry.get("ctrl") as Control
-		if is_instance_valid(ctrl):
+		var raw_ctrl: Variant = entry.get("ctrl")
+		if is_instance_valid(raw_ctrl):
+			var ctrl := raw_ctrl as Control
 			ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			items_to_free.append(ctrl)
 			for i in range(_runes.size() - 1, -1, -1):
@@ -915,14 +917,15 @@ func _remove_desk_item_animated(entry: Dictionary, to_right: bool, keep_npc_owne
 	_sync_desk_items_to_save()
 	GameManager.save_game()
 
-	var ctrl := entry["ctrl"] as Control
+	var raw_ctrl: Variant = entry.get("ctrl")
+	if not is_instance_valid(raw_ctrl):
+		entry["ctrl"] = null
+		_check_ready_for_next_step()
+		return
+	var ctrl := raw_ctrl as Control
 	for i in range(_runes.size() - 1, -1, -1):
 		if _runes[i].get("owner") == ctrl:
 			_runes.remove_at(i)
-
-	if not is_instance_valid(ctrl):
-		_check_ready_for_next_step()
-		return
 	ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var tween := create_tween().set_parallel(true)
 	if to_right:
@@ -933,6 +936,7 @@ func _remove_desk_item_animated(entry: Dictionary, to_right: bool, keep_npc_owne
 	await tween.finished
 	if is_instance_valid(ctrl):
 		ctrl.queue_free()
+	entry["ctrl"] = null
 	_check_ready_for_next_step()
 
 func _flash_vignette(color: Color) -> void:
