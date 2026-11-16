@@ -13,32 +13,36 @@ const ITEM_TYPE_NAMES: Dictionary = {
 	"pocion": "Botella",
 }
 
+const DECORACIONES_SHEET: Texture2D = preload("res://Assets/Art/Items/Decoraciones.png")
+
 const ITEM_ICONS: Dictionary = {
 	"escudo": {
 		"interior": preload("res://Assets/Art/Items/PlantillaEscudo_Interior.png"),
 		"borde": preload("res://Assets/Art/Items/PlantillaEscudo_Borde.png"),
+		"deco_pos": Vector2(10.0, 9.0),
 	},
 	"libro": {
 		"interior": preload("res://Assets/Art/Items/PlantillaLibro_Libro_Interior.png"),
 		"borde": preload("res://Assets/Art/Items/PlantillaLibro_Libro_Borde.png"),
+		"deco_pos": Vector2(11.0, 7.0),
 	},
 	"pocion": {
 		"interior": preload("res://Assets/Art/Items/Pocion_Interior.png"),
 		"borde": preload("res://Assets/Art/Items/Pocion_Borde.png"),
+		"deco_pos": Vector2(10.0, 14.0),
 	},
 }
 
 const DECO_CLASSES: Dictionary = {
-	"corona": {"label": "Realeza", "color": Color(0.95, 0.89, 0.74, 1.0)},
-	"calavera": {"label": "Nigromante", "color": Color(0.55, 0.14, 0.16, 1.0)},
-	"luna": {"label": "Mago", "color": Color(0.16, 0.24, 0.52, 1.0)},
-	"ojo": {"label": "Vidente", "color": Color(0.14, 0.14, 0.17, 1.0)},
-	"hacha": {"label": "Carpintero", "color": Color(0.52, 0.33, 0.20, 1.0)},
-	"espada": {"label": "Carpintero", "color": Color(0.52, 0.33, 0.20, 1.0)},
-	"fuego": {"label": "Alquimista", "color": Color(0.52, 0.54, 0.58, 1.0)},
-	"gema": {"label": "Joyero", "color": Color(0.52, 0.22, 0.72, 1.0)},
-	"esmeralda": {"label": "Naturista", "color": Color(0.15, 0.45, 0.22, 1.0)},
-	"moneda": {"label": "Mercader", "color": Color(0.78, 0.82, 0.88, 1.0)},
+	"corona": {"label": "Paladín", "cell": Vector2i(0, 0), "color": Color(0.95, 0.89, 0.74, 1.0)},
+	"calavera": {"label": "Brujo", "cell": Vector2i(1, 0), "color": Color(0.72, 0.22, 0.24, 1.0)},
+	"luna": {"label": "Clérigo", "cell": Vector2i(2, 0), "color": Color(0.26, 0.44, 0.82, 1.0)},
+	"ojo": {"label": "Mago", "cell": Vector2i(0, 1), "color": Color(0.36, 0.28, 0.68, 1.0)},
+	"hacha": {"label": "Carpintería", "cell": Vector2i(1, 1), "color": Color(0.68, 0.45, 0.28, 1.0)},
+	"fuego": {"label": "Alquimia", "cell": Vector2i(2, 1), "color": Color(0.78, 0.45, 0.24, 1.0)},
+	"gema": {"label": "Lujo", "cell": Vector2i(0, 2), "color": Color(0.66, 0.34, 0.86, 1.0)},
+	"esmeralda": {"label": "Druida", "cell": Vector2i(1, 2), "color": Color(0.24, 0.68, 0.34, 1.0)},
+	"moneda": {"label": "Económico", "cell": Vector2i(2, 2), "color": Color(0.86, 0.82, 0.56, 1.0)},
 }
 
 @onready var left_title: Label = %LeftTitle
@@ -71,6 +75,11 @@ func _ready() -> void:
 		write_audio.finished.connect(_on_write_audio_finished)
 
 	AudioManager.play_sfx(LIBRO_OPEN_SFX)
+	if GameManager.dishonor_arrested:
+		GameManager.dishonor_arrested = false
+		end_story_text.text = _build_dishonor_ending_text()
+		end_story_overlay.visible = true
+		return
 	if GameManager.current_day >= 3:
 		_show_stolen_items_page()
 	else:
@@ -112,10 +121,8 @@ func _show_stolen_items_page() -> void:
 			icon_int.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			icon_int.set_anchors_preset(Control.PRESET_FULL_RECT)
 			var tint: Color = deco_info["color"]
-			if t_id == "libro":
-				tint = tint.darkened(0.22)
-			elif t_id == "pocion":
-				tint.a = 0.75
+			if t_id == "pocion":
+				tint.a = 0.85
 			icon_int.self_modulate = tint
 			icon_box.add_child(icon_int)
 
@@ -126,11 +133,24 @@ func _show_stolen_items_page() -> void:
 			icon_borde.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 			icon_borde.set_anchors_preset(Control.PRESET_FULL_RECT)
 			icon_box.add_child(icon_borde)
+
+			var deco_atlas := AtlasTexture.new()
+			deco_atlas.atlas = DECORACIONES_SHEET
+			var cell: Vector2i = deco_info.get("cell", Vector2i(0, 0))
+			deco_atlas.region = Rect2(cell.x * 16, cell.y * 16, 16, 16)
+			var icon_deco := TextureRect.new()
+			icon_deco.texture = deco_atlas
+			icon_deco.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			icon_deco.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon_deco.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon_deco.size = Vector2(10, 10)
+			icon_deco.position = icon_set.get("deco_pos", Vector2(11.0, 10.0))
+			icon_box.add_child(icon_deco)
 			row.add_child(icon_box)
 
 			var info_vbox := VBoxContainer.new()
 			info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			info_vbox.add_theme_constant_override("separation", 1)
+			info_vbox.add_theme_constant_override("separation", 0)
 
 			var type_name: String = ITEM_TYPE_NAMES.get(t_id, "Objeto")
 			var class_name_str: String = str(deco_info["label"])
@@ -138,12 +158,12 @@ func _show_stolen_items_page() -> void:
 			var lbl := Label.new()
 			lbl.text = "%s de %s ($%d)" % [type_name, class_name_str, val]
 			lbl.add_theme_font_override("font", BOOK_FONT)
-			lbl.add_theme_font_size_override("font_size", 12)
+			lbl.add_theme_font_size_override("font_size", 16)
 			lbl.add_theme_color_override("font_color", Color(0.22, 0.14, 0.16, 1.0))
 			info_vbox.add_child(lbl)
 
 			var actions_row := HBoxContainer.new()
-			actions_row.add_theme_constant_override("separation", 10)
+			actions_row.add_theme_constant_override("separation", 12)
 
 			var btn_sell := Button.new()
 			btn_sell.text = "[VENDER]"
@@ -151,7 +171,7 @@ func _show_stolen_items_page() -> void:
 			btn_sell.focus_mode = Control.FOCUS_NONE
 			btn_sell.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 			btn_sell.add_theme_font_override("font", BOOK_FONT)
-			btn_sell.add_theme_font_size_override("font_size", 11)
+			btn_sell.add_theme_font_size_override("font_size", 16)
 			btn_sell.add_theme_color_override("font_color", Color(0.12, 0.45, 0.18, 1.0))
 			btn_sell.add_theme_color_override("font_hover_color", Color(0.08, 0.65, 0.2, 1.0))
 
@@ -161,7 +181,7 @@ func _show_stolen_items_page() -> void:
 			btn_keep.focus_mode = Control.FOCUS_NONE
 			btn_keep.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 			btn_keep.add_theme_font_override("font", BOOK_FONT)
-			btn_keep.add_theme_font_size_override("font_size", 11)
+			btn_keep.add_theme_font_size_override("font_size", 16)
 			btn_keep.add_theme_color_override("font_color", Color(0.38, 0.25, 0.15, 1.0))
 			btn_keep.add_theme_color_override("font_hover_color", Color(0.6, 0.4, 0.15, 1.0))
 
@@ -384,6 +404,12 @@ func _build_ending_text(is_game_over: bool) -> String:
 	GameManager.unlock_ending(ending_id)
 	var hint_block := "\n\n[color=#9fd3ff]%s[/color]" % hint if not hint.is_empty() else ""
 	return "[center][color=#ffd27d]%s[/color]\n\n%s%s\n\n[color=#aaaaaa]FIN DE LA HISTORIA[/color][/center]" % [title, body, hint_block]
+
+func _build_dishonor_ending_text() -> String:
+	GameManager.unlock_ending("6")
+	var title := "FINAL 6: TRAICIÓN A LA CORONA"
+	var body := "Tu deshonra colmó la paciencia del reino. La guardia real irrumpió en la notaría y te arrestó por tus crímenes contra la corona.\n\nAhora compartes celda con los mismos aventureros cuya ruina firmaste."
+	return "[center][color=#ff6b6b]%s[/color]\n\n%s\n\n[color=#aaaaaa]FIN DE LA HISTORIA[/color][/center]" % [title, body]
 
 func _on_end_continue_pressed() -> void:
 	AudioManager.play_sfx(LIBRO_CLOSE_SFX)

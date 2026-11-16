@@ -964,6 +964,11 @@ func _apply_honor_change(delta: int, play_coins: bool) -> void:
 	if play_coins:
 		AudioManager.play_sfx(BAG_OF_COINS_SFX)
 	_update_day_progress_label()
+	if GameManager.honor <= -100 and not is_day_ending:
+		is_day_ending = true
+		GameManager.dishonor_arrested = true
+		GameManager.delete_save()
+		get_tree().change_scene_to_file("res://Scenes/Flow/Day_Summary.tscn")
 
 func _flash_honor_label(label_text: String, color: Color) -> void:
 	if not is_instance_valid(honor_flash_label):

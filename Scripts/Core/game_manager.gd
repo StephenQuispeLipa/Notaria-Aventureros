@@ -31,6 +31,7 @@ var day4_confiscate_category: String = "sagrados"
 var day5_prohibited_category: String = "peligrosos"
 var day_lore_seen: bool = false
 var current_npc_appearance: Dictionary = {}
+var dishonor_arrested: bool = false
 var unlocked_endings: Array[String] = []
 
 var total_charged: int = 0
@@ -66,6 +67,7 @@ func start_new_game() -> void:
 	day5_prohibited_category = ["sagrados", "peligrosos", "valiosos", "naturistas"].pick_random()
 	day_lore_seen = false
 	current_npc_appearance = {}
+	dishonor_arrested = false
 	total_charged = 0
 	total_arrested = 0
 	total_earned = 0
@@ -88,6 +90,7 @@ func advance_to_next_day() -> void:
 	daily_arrest_rewards[str(current_day)] = arrest_reward_today
 	day_lore_seen = false
 	current_npc_appearance = {}
+	dishonor_arrested = false
 	save_game()
 
 func _pick_forced_indices(npc_count: int) -> Array:

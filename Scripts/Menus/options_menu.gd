@@ -100,7 +100,7 @@ func _update_endings_label() -> void:
 	var count := GameManager.unlocked_endings.size()
 	endings_label.visible = count > 0
 	if count > 0:
-		endings_label.text = "Finales %d/5" % count
+		endings_label.text = "Finales %d/6" % count
 
 func _setup_audio_buses() -> void:
 	bus_master_idx = AudioServer.get_bus_index("Master")
