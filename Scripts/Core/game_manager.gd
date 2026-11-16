@@ -17,12 +17,20 @@ var arrests_today: int = 0
 var charges_today: int = 0
 var stolen_value_today: int = 0
 var stolen_count_today: int = 0
+var stolen_items: Array = []
 var desk_items: Array = []
 var day_time_remaining: float = 60.0
 var book_page: int = 1
 var last_day_timed_out: bool = false
 var arrest_reward_today: int = 5
 var daily_arrest_rewards: Dictionary = {}
+var day1_banned_color_index: int = 0
+var day1_forced_indices: Array = []
+var day3_confiscate_type: String = "libro"
+var day4_confiscate_category: String = "sagrados"
+var day5_prohibited_category: String = "peligrosos"
+var day_lore_seen: bool = false
+var current_npc_appearance: Dictionary = {}
 
 var total_charged: int = 0
 var total_arrested: int = 0
@@ -43,12 +51,20 @@ func start_new_game() -> void:
 	charges_today = 0
 	stolen_value_today = 0
 	stolen_count_today = 0
+	stolen_items = []
 	desk_items = []
 	day_time_remaining = get_day_duration(current_day)
 	book_page = 1
 	last_day_timed_out = false
 	arrest_reward_today = randi_range(4, 7)
 	daily_arrest_rewards = {str(current_day): arrest_reward_today}
+	day1_banned_color_index = randi() % 8
+	day1_forced_indices = _pick_forced_indices(npcs_today_count)
+	day3_confiscate_type = ["libro", "escudo", "pocion"].pick_random()
+	day4_confiscate_category = ["sagrados", "peligrosos", "valiosos", "naturistas"].pick_random()
+	day5_prohibited_category = ["sagrados", "peligrosos", "valiosos", "naturistas"].pick_random()
+	day_lore_seen = false
+	current_npc_appearance = {}
 	total_charged = 0
 	total_arrested = 0
 	total_earned = 0
@@ -67,9 +83,19 @@ func advance_to_next_day() -> void:
 	desk_items = []
 	day_time_remaining = get_day_duration(current_day)
 	last_day_timed_out = false
-	arrest_reward_today = randi_range(4, 7)
+	arrest_reward_today = randi_range(2, 3) if current_day == 4 else randi_range(4, 7)
 	daily_arrest_rewards[str(current_day)] = arrest_reward_today
+	day_lore_seen = false
+	current_npc_appearance = {}
 	save_game()
+
+func _pick_forced_indices(npc_count: int) -> Array:
+	var indices: Array = []
+	for i in range(npc_count):
+		indices.append(i)
+	indices.shuffle()
+	var count := mini(randi_range(1, 2), npc_count)
+	return indices.slice(0, count)
 
 func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH)
@@ -85,11 +111,19 @@ func save_game() -> void:
 		"charges_today": charges_today,
 		"stolen_value_today": stolen_value_today,
 		"stolen_count_today": stolen_count_today,
+		"stolen_items": stolen_items,
 		"desk_items": desk_items,
 		"day_time_remaining": day_time_remaining,
 		"book_page": book_page,
 		"arrest_reward_today": arrest_reward_today,
 		"daily_arrest_rewards": daily_arrest_rewards,
+		"day1_banned_color_index": day1_banned_color_index,
+		"day1_forced_indices": day1_forced_indices,
+		"day3_confiscate_type": day3_confiscate_type,
+		"day4_confiscate_category": day4_confiscate_category,
+		"day5_prohibited_category": day5_prohibited_category,
+		"day_lore_seen": day_lore_seen,
+		"current_npc_appearance": current_npc_appearance,
 		"total_charged": total_charged,
 		"total_arrested": total_arrested,
 		"total_earned": total_earned,
@@ -122,15 +156,26 @@ func load_game() -> bool:
 	charges_today = int(data.get("charges_today", 0))
 	stolen_value_today = int(data.get("stolen_value_today", 0))
 	stolen_count_today = int(data.get("stolen_count_today", 0))
+	var saved_stolen: Variant = data.get("stolen_items", [])
+	stolen_items = saved_stolen if saved_stolen is Array else []
 	var saved_items: Variant = data.get("desk_items", [])
 	desk_items = saved_items if saved_items is Array else []
 	day_time_remaining = float(data.get("day_time_remaining", get_day_duration(current_day)))
-	book_page = clampi(int(data.get("book_page", 1)), 1, 4)
+	book_page = clampi(int(data.get("book_page", 1)), 1, 6)
 	arrest_reward_today = int(data.get("arrest_reward_today", randi_range(4, 7)))
 	var saved_rewards: Variant = data.get("daily_arrest_rewards", {})
 	daily_arrest_rewards = saved_rewards if saved_rewards is Dictionary else {}
 	if not daily_arrest_rewards.has(str(current_day)):
 		daily_arrest_rewards[str(current_day)] = arrest_reward_today
+	day1_banned_color_index = clampi(int(data.get("day1_banned_color_index", 0)), 0, 7)
+	var saved_forced: Variant = data.get("day1_forced_indices", [])
+	day1_forced_indices = saved_forced if saved_forced is Array else []
+	day3_confiscate_type = str(data.get("day3_confiscate_type", "libro"))
+	day4_confiscate_category = str(data.get("day4_confiscate_category", "sagrados"))
+	day5_prohibited_category = str(data.get("day5_prohibited_category", "peligrosos"))
+	day_lore_seen = bool(data.get("day_lore_seen", false))
+	var saved_npc: Variant = data.get("current_npc_appearance", {})
+	current_npc_appearance = saved_npc if saved_npc is Dictionary else {}
 	total_charged = int(data.get("total_charged", 0))
 	total_arrested = int(data.get("total_arrested", 0))
 	total_earned = int(data.get("total_earned", 0))
