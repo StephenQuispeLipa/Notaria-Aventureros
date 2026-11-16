@@ -682,6 +682,8 @@ func _on_arrestar_pressed() -> void:
 	GameManager.total_arrested += 1
 	GameManager.day_time_remaining = time_remaining
 	_apply_honor_change(honor_delta, true)
+	if is_day_ending:
+		return
 	GameManager.save_game()
 	_resolve_npc(-NPC_EXIT_OFFSET, false)
 
@@ -899,6 +901,8 @@ func _steal_entry(entry: Dictionary) -> void:
 	})
 	_apply_honor_change(honor_loss, false)
 	AudioManager.play_sfx(BAG_OF_COINS_SFX)
+	if is_day_ending:
+		return
 	entry["removing"] = true
 	_desk_items.erase(entry)
 	_update_action_buttons()
