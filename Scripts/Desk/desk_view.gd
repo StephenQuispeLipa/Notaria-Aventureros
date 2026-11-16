@@ -22,7 +22,7 @@ const LENS_GLASS_RADIUS: float = 34.0
 const RUNE_ALPHABET := "abcdefghijklmnopqrstuvwxyz"
 const RUNES_PER_ITEM := 10
 const MAX_ITEMS_PER_NPC := 3
-const MAX_BOOK_PAGES := 4
+const MAX_BOOK_PAGES := 6
 const BOOK_FONT: Font = preload("res://Assets/Art/Fonts/monogram-extended.ttf")
 
 const ITEM_SLOT_POSITIONS: Dictionary = {
@@ -91,7 +91,7 @@ const ITEM_DECORATIONS: Array[Dictionary] = [
 	{"name": "calavera", "cell": Vector2i(1, 0), "color": Color(0.55, 0.14, 0.16, 1.0)},  # Rojo oscuro
 	{"name": "luna", "cell": Vector2i(2, 0), "color": Color(0.16, 0.24, 0.52, 1.0)},      # Azul oscuro
 	{"name": "ojo", "cell": Vector2i(0, 1), "color": Color(0.14, 0.14, 0.17, 1.0)},       # Negro
-	{"name": "espada", "cell": Vector2i(1, 1), "color": Color(0.52, 0.33, 0.20, 1.0)},    # Café
+	{"name": "hacha", "cell": Vector2i(1, 1), "color": Color(0.52, 0.33, 0.20, 1.0)},     # Café
 	{"name": "fuego", "cell": Vector2i(2, 1), "color": Color(0.52, 0.54, 0.58, 1.0)},     # Gris
 	{"name": "gema", "cell": Vector2i(0, 2), "color": Color(0.52, 0.22, 0.72, 1.0)},      # Púrpura
 	{"name": "esmeralda", "cell": Vector2i(1, 2), "color": Color(0.15, 0.45, 0.22, 1.0)}, # Verde oscuro
@@ -104,15 +104,40 @@ const RUNE_FONTS: Array[Font] = [
 ]
 
 const WIZARD_COLORS: Array[Color] = [
-	Color(0.32, 0.52, 0.88, 1.0), # Azul real
-	Color(0.84, 0.28, 0.28, 1.0), # Rojo carmesí
-	Color(0.28, 0.72, 0.42, 1.0), # Verde esmeralda
-	Color(0.64, 0.34, 0.82, 1.0), # Morado arcano
+	Color(0.32, 0.52, 0.88, 1.0), # Azul
+	Color(0.84, 0.28, 0.28, 1.0), # Rojo
+	Color(0.28, 0.72, 0.42, 1.0), # Verde
+	Color(0.64, 0.34, 0.82, 1.0), # Morado
 	Color(0.88, 0.68, 0.24, 1.0), # Dorado
 	Color(0.26, 0.72, 0.78, 1.0), # Turquesa
-	Color(0.82, 0.44, 0.68, 1.0), # Magenta suave
-	Color(0.76, 0.74, 0.70, 1.0), # Gris claro
+	Color(0.82, 0.44, 0.68, 1.0), # Magenta
+	Color(0.76, 0.74, 0.70, 1.0), # Gris
 ]
+
+const OUTFIT_COLOR_NAMES: Array[String] = ["Azul", "Rojo", "Verde", "Morado", "Dorado", "Turquesa", "Magenta", "Gris"]
+const OUTFIT_COLOR_HEX_DARK: Array[String] = ["#6699ff", "#ff5c5c", "#52d17a", "#c278f0", "#f5c445", "#4ad9e6", "#f07cc2", "#d0cdc6"]
+const OUTFIT_COLOR_HEX_PAPER: Array[String] = ["#1d499e", "#9e1f1f", "#186b32", "#6b2399", "#946506", "#0e6b75", "#94286a", "#52504c"]
+
+const CATEGORY_DECOS: Dictionary = {
+	"sagrados": ["luna", "corona", "gema"],
+	"peligrosos": ["hacha", "espada", "fuego", "calavera", "ojo"],
+	"valiosos": ["gema", "moneda"],
+	"naturistas": ["esmeralda", "fuego"],
+}
+
+const CATEGORY_TITLES: Dictionary = {
+	"sagrados": "Objetos sagrados",
+	"peligrosos": "Objetos peligrosos",
+	"valiosos": "Objetos valiosos",
+	"naturistas": "Objetos naturistas",
+}
+
+const CATEGORY_CELLS: Dictionary = {
+	"sagrados": [Vector2i(2, 0), Vector2i(0, 0), Vector2i(0, 2)],
+	"peligrosos": [Vector2i(1, 1), Vector2i(2, 1), Vector2i(1, 0), Vector2i(0, 1)],
+	"valiosos": [Vector2i(0, 2), Vector2i(2, 2)],
+	"naturistas": [Vector2i(1, 2), Vector2i(2, 1)],
+}
 
 
 var total_npcs: int = 4
@@ -122,6 +147,9 @@ var charges_today: int = 0
 var time_remaining: float = 60.0
 var is_transitioning: bool = false
 var is_day_ending: bool = false
+var _has_active_npc: bool = false
+var _waiting_desk_clear: bool = false
+var _pending_timed_out: bool = false
 var _last_displayed_second: int = -1
 var _save_timer_accum: float = 0.0
 var _dragging_node: Control = null
@@ -166,6 +194,10 @@ var current_book_page: int = 1
 @onready var book_page_label: Label = %BookPageLabel
 @onready var left_page: VBoxContainer = %LeftPage
 @onready var right_page: VBoxContainer = %RightPage
+@onready var lore_overlay: Control = %LoreOverlay
+@onready var lore_title_label: Label = %LoreTitleLabel
+@onready var lore_text_label: RichTextLabel = %LoreTextLabel
+@onready var btn_lore_continue: Button = %BtnLoreContinue
 
 func _ready() -> void:
 	randomize()
@@ -185,6 +217,7 @@ func _ready() -> void:
 
 	btn_confiscar.pressed.connect(_on_confiscar_pressed)
 	btn_robar.pressed.connect(_on_robar_pressed)
+	btn_lore_continue.pressed.connect(_on_lore_continue_pressed)
 
 	magic_lens.gui_input.connect(_on_draggable_gui_input.bind(magic_lens, {}))
 
@@ -192,7 +225,7 @@ func _ready() -> void:
 	_start_current_day()
 
 func _process(delta: float) -> void:
-	if is_day_ending:
+	if is_day_ending or lore_overlay.visible:
 		return
 
 	_update_runes(delta)
@@ -211,13 +244,12 @@ func _process(delta: float) -> void:
 		_save_timer_accum = 0.0
 		GameManager.save_game()
 
-	if time_remaining <= 0.0:
-		is_day_ending = true
-		is_transitioning = true
+	if time_remaining <= 0.0 and not _pending_timed_out:
+		_pending_timed_out = true
 		_set_actions_enabled(false)
 		if book_overlay.visible:
 			_close_book()
-		_show_day_summary(true)
+		_discard_pending_npc_on_timeout()
 
 func _exit_tree() -> void:
 	if not is_day_ending and GameManager.has_save():
@@ -265,6 +297,8 @@ func _on_draggable_gui_input(event: InputEvent, target: Control, item_entry: Dic
 			var max_bounds := VIEWPORT_SIZE if target == magic_lens else Vector2(VIEWPORT_SIZE.x, VIEWPORT_SIZE.y + 16.0)
 			new_pos = new_pos.clamp(Vector2.ZERO, max_bounds - target.size)
 			target.global_position = new_pos
+			if not item_entry.is_empty() and is_instance_valid(item_entry.get("inline_box")):
+				_position_inline_box(item_entry)
 			_update_magic_lens_shaders()
 		get_viewport().set_input_as_handled()
 
@@ -287,6 +321,9 @@ func _setup_items() -> void:
 func _clear_all_desk_items() -> void:
 	_hide_item_action_popup()
 	for entry in _desk_items:
+		var inline_box := entry.get("inline_box") as Control
+		if is_instance_valid(inline_box):
+			inline_box.queue_free()
 		var ctrl := entry["ctrl"] as Control
 		if is_instance_valid(ctrl):
 			ctrl.queue_free()
@@ -476,6 +513,9 @@ func _start_current_day() -> void:
 	time_remaining = GameManager.day_time_remaining
 	current_book_page = clampi(GameManager.book_page, 1, MAX_BOOK_PAGES)
 	is_day_ending = false
+	_has_active_npc = false
+	_waiting_desk_clear = false
+	_pending_timed_out = time_remaining <= 0.0
 	_last_displayed_second = ceili(time_remaining)
 	_save_timer_accum = 0.0
 	_set_vignette(Color.WHITE, 0.0)
@@ -494,18 +534,32 @@ func _start_current_day() -> void:
 	_update_book_page_ui()
 
 	if current_npc_index >= total_npcs:
-		_show_day_summary(false)
+		lore_overlay.visible = false
+		_check_ready_for_next_step()
 	elif time_remaining <= 0.0:
-		_show_day_summary(true)
-	elif _current_npc_items.is_empty():
-		_spawn_current_npc()
+		lore_overlay.visible = false
+		_pending_timed_out = true
+		_discard_pending_npc_on_timeout()
 	else:
-		is_transitioning = false
-		_set_actions_enabled(true)
-		_randomize_npc_appearance()
-		npc_rect.position.x = NPC_CENTER_X
-		npc_rect.modulate.a = 1.0
-		_update_magic_lens_shaders()
+		if _current_npc_items.is_empty():
+			npc_rect.modulate.a = 0.0
+			_check_ready_for_next_step()
+		else:
+			_has_active_npc = true
+			is_transitioning = false
+			if GameManager.current_npc_appearance.is_empty():
+				_randomize_npc_appearance()
+			else:
+				_apply_npc_appearance(GameManager.current_npc_appearance)
+			_set_actions_enabled(true)
+			npc_rect.position.x = NPC_CENTER_X
+			npc_rect.modulate.a = 1.0
+			_update_magic_lens_shaders()
+
+		if not GameManager.day_lore_seen:
+			_show_day_lore_overlay(GameManager.current_day)
+		else:
+			lore_overlay.visible = false
 
 func _update_day_progress_label() -> void:
 	var sec := maxi(ceili(time_remaining), 0)
@@ -522,9 +576,10 @@ func _update_day_progress_label() -> void:
 		GameManager.honor,
 	]
 
-func _randomize_npc_appearance() -> void:
-	var is_wizard := randf() < 0.5
-	var outfit_color: Color = WIZARD_COLORS.pick_random()
+func _apply_npc_appearance(app: Dictionary) -> void:
+	var is_wizard := bool(app.get("is_wizard", true))
+	var color_idx := clampi(int(app.get("color_idx", 0)), 0, WIZARD_COLORS.size() - 1)
+	var outfit_color: Color = WIZARD_COLORS[color_idx]
 	if is_wizard:
 		npc_persona.visible = false
 		npc_interior.texture = MAGO_INTERIOR_TEX
@@ -535,8 +590,10 @@ func _randomize_npc_appearance() -> void:
 		npc_sombrero_interior.visible = false
 		npc_sombrero_borde.visible = false
 	else:
-		var ropa: Dictionary = NPC_CLOTHES.pick_random()
-		var sombrero: Dictionary = NPC_HATS.pick_random()
+		var ropa_idx := clampi(int(app.get("ropa_idx", 0)), 0, NPC_CLOTHES.size() - 1)
+		var sombrero_idx := clampi(int(app.get("sombrero_idx", 0)), 0, NPC_HATS.size() - 1)
+		var ropa: Dictionary = NPC_CLOTHES[ropa_idx]
+		var sombrero: Dictionary = NPC_HATS[sombrero_idx]
 		npc_persona.visible = true
 		npc_persona.modulate = Color.WHITE
 		npc_interior.texture = ropa["interior"]
@@ -550,7 +607,22 @@ func _randomize_npc_appearance() -> void:
 		npc_sombrero_borde.texture = sombrero["borde"]
 		npc_sombrero_borde.visible = true
 
+func _randomize_npc_appearance() -> void:
+	var is_wizard := randf() < 0.5
+	var color_idx := randi() % WIZARD_COLORS.size()
+	if GameManager.current_day == 1 and (current_npc_index in GameManager.day1_forced_indices):
+		color_idx = clampi(GameManager.day1_banned_color_index, 0, WIZARD_COLORS.size() - 1)
+	var app := {
+		"is_wizard": is_wizard,
+		"color_idx": color_idx,
+		"ropa_idx": randi() % NPC_CLOTHES.size(),
+		"sombrero_idx": randi() % NPC_HATS.size(),
+	}
+	GameManager.current_npc_appearance = app
+	_apply_npc_appearance(app)
+
 func _spawn_current_npc() -> void:
+	_has_active_npc = true
 	is_transitioning = false
 	_set_actions_enabled(true)
 	_hide_item_action_popup()
@@ -576,13 +648,14 @@ func _spawn_current_npc() -> void:
 
 	_sync_desk_items_to_save()
 	_update_magic_lens_shaders()
+	_update_action_buttons()
 	GameManager.save_game()
 
 func _on_cobrar_pressed() -> void:
-	if is_transitioning or is_day_ending:
+	if is_transitioning or is_day_ending or _waiting_desk_clear or _has_unconfiscated_required_item():
 		return
-	var has_prohibited := _has_prohibited_npc_item()
-	var honor_delta := -10 if has_prohibited else 5
+	var is_prohibited := _is_npc_prohibited()
+	var honor_delta := -6 if is_prohibited else 2
 	charges_today += 1
 	current_npc_index += 1
 	GameManager.charges_today = charges_today
@@ -593,10 +666,10 @@ func _on_cobrar_pressed() -> void:
 	_resolve_npc(NPC_EXIT_OFFSET, true)
 
 func _on_arrestar_pressed() -> void:
-	if is_transitioning or is_day_ending:
+	if is_transitioning or is_day_ending or _waiting_desk_clear or _has_unconfiscated_required_item():
 		return
-	var has_prohibited := _has_prohibited_npc_item()
-	var honor_delta := 8 if has_prohibited else -12
+	var is_prohibited := _is_npc_prohibited()
+	var honor_delta := 3 if is_prohibited else -8
 	arrests_today += 1
 	current_npc_index += 1
 	GameManager.arrests_today = arrests_today
@@ -623,8 +696,10 @@ func _resolve_npc(exit_offset_x: float, clear_npc_items: bool) -> void:
 				for i in range(_runes.size() - 1, -1, -1):
 					if _runes[i].get("owner") == ctrl:
 						_runes.remove_at(i)
-		_current_npc_items.clear()
-		_sync_desk_items_to_save()
+	_current_npc_items.clear()
+	_has_active_npc = false
+	GameManager.current_npc_appearance = {}
+	_sync_desk_items_to_save()
 	GameManager.save_game()
 
 	var tween := create_tween().set_parallel(true)
@@ -639,17 +714,109 @@ func _resolve_npc(exit_offset_x: float, clear_npc_items: bool) -> void:
 		if is_instance_valid(ctrl):
 			ctrl.queue_free()
 
+	is_transitioning = false
+	_check_ready_for_next_step()
+
+func _discard_pending_npc_on_timeout() -> void:
 	if is_day_ending:
 		return
+	_hide_item_action_popup()
+	if is_transitioning or _waiting_desk_clear or _current_npc_items.is_empty():
+		_check_ready_for_next_step()
+		return
 
-	if current_npc_index < total_npcs:
-		_spawn_current_npc()
-	else:
+	is_transitioning = true
+	_set_actions_enabled(false)
+	var items_to_free: Array[Control] = []
+	for entry in _current_npc_items:
+		_desk_items.erase(entry)
+		var ctrl := entry.get("ctrl") as Control
+		if is_instance_valid(ctrl):
+			ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			items_to_free.append(ctrl)
+			for i in range(_runes.size() - 1, -1, -1):
+				if _runes[i].get("owner") == ctrl:
+					_runes.remove_at(i)
+	_current_npc_items.clear()
+	_has_active_npc = false
+	GameManager.current_npc_appearance = {}
+	_sync_desk_items_to_save()
+	GameManager.save_game()
+
+	var tween := create_tween().set_parallel(true)
+	tween.tween_property(npc_rect, "modulate:a", 0.0, 0.35).set_ease(Tween.EASE_IN)
+	for ctrl in items_to_free:
+		tween.tween_property(ctrl, "modulate:a", 0.0, 0.35).set_ease(Tween.EASE_IN)
+
+	await tween.finished
+
+	for ctrl in items_to_free:
+		if is_instance_valid(ctrl):
+			ctrl.queue_free()
+
+	is_transitioning = false
+	_check_ready_for_next_step()
+
+func _check_ready_for_next_step() -> void:
+	if is_day_ending or is_transitioning or _has_active_npc:
+		return
+	if not _desk_items.is_empty():
+		_waiting_desk_clear = true
+		_set_actions_enabled(false)
+		_show_inline_actions_on_desk_items()
+		return
+
+	_waiting_desk_clear = false
+	if _pending_timed_out:
+		is_day_ending = true
+		_show_day_summary(true)
+	elif current_npc_index >= total_npcs:
 		is_day_ending = true
 		_show_day_summary(false)
+	else:
+		_spawn_current_npc()
+
+func _show_inline_actions_on_desk_items() -> void:
+	for entry in _desk_items:
+		if bool(entry.get("removing", false)):
+			continue
+		var existing := entry.get("inline_box") as Control
+		if is_instance_valid(existing):
+			existing.visible = true
+			_position_inline_box(entry)
+			continue
+		var inline_box := item_action_popup.duplicate() as VBoxContainer
+		inline_box.name = "InlineItemActions"
+		inline_box.unique_name_in_owner = false
+		var c_btn := inline_box.get_node("BtnConfiscar") as Button
+		var r_btn := inline_box.get_node("BtnRobar") as Button
+		c_btn.unique_name_in_owner = false
+		r_btn.unique_name_in_owner = false
+		r_btn.visible = GameManager.current_day >= 3
+		c_btn.pressed.connect(_confiscate_entry.bind(entry))
+		r_btn.pressed.connect(_steal_entry.bind(entry))
+		item_action_popup.get_parent().add_child(inline_box)
+		inline_box.visible = true
+		entry["inline_box"] = inline_box
+		_position_inline_box(entry)
+
+func _position_inline_box(entry: Dictionary) -> void:
+	var ctrl := entry.get("ctrl") as Control
+	var inline_box := entry.get("inline_box") as Control
+	if not is_instance_valid(ctrl) or not is_instance_valid(inline_box):
+		return
+	var box_w := 60.0
+	var box_h := 32.0 if GameManager.current_day >= 3 else 15.0
+	var pos := Vector2(
+		ctrl.position.x + (ctrl.size.x - box_w) * 0.5,
+		ctrl.position.y + 4.0
+	)
+	pos.x = clampf(pos.x, 4.0, VIEWPORT_SIZE.x - box_w - 4.0)
+	pos.y = clampf(pos.y, 4.0, VIEWPORT_SIZE.y - box_h - 4.0)
+	inline_box.position = pos
 
 func _open_item_action_popup(entry: Dictionary, ctrl: Control) -> void:
-	if is_day_ending:
+	if is_day_ending or _waiting_desk_clear:
 		return
 	var click_pos := get_global_mouse_position()
 	_selected_item = entry
@@ -679,9 +846,17 @@ func _on_confiscar_pressed() -> void:
 		return
 	var entry := _selected_item
 	_hide_item_action_popup()
-	var prohibited := _is_item_prohibited(str(entry["type_id"]), str(entry["deco"]), bool(entry["is_magic"]))
-	if prohibited:
-		_apply_honor_change(6, false)
+	_confiscate_entry(entry)
+
+func _confiscate_entry(entry: Dictionary) -> void:
+	if entry.is_empty() or bool(entry.get("removing", false)):
+		return
+	var should_confiscate := _is_item_required_to_confiscate(str(entry["type_id"]), str(entry["deco"]), bool(entry["is_magic"]))
+	if should_confiscate:
+		_apply_honor_change(3, false)
+	entry["removing"] = true
+	_desk_items.erase(entry)
+	_update_action_buttons()
 	_remove_desk_item_animated(entry, true)
 
 func _on_robar_pressed() -> void:
@@ -690,24 +865,41 @@ func _on_robar_pressed() -> void:
 		return
 	var entry := _selected_item
 	_hide_item_action_popup()
+	_steal_entry(entry)
+
+func _steal_entry(entry: Dictionary) -> void:
+	if GameManager.current_day < 3 or entry.is_empty() or bool(entry.get("removing", false)):
+		return
 	var type_id := str(entry["type_id"])
 	var deco := str(entry["deco"])
-	var honor_loss := -8
+	var honor_loss := -10
 	var item_value := randi_range(3, 5)
 	if type_id == "escudo" or deco in ["gema", "esmeralda", "moneda"]:
-		honor_loss = -12
+		honor_loss = -15
 		item_value = randi_range(6, 10)
 	elif type_id == "pocion":
-		honor_loss = -5
+		honor_loss = -6
 		item_value = randi_range(1, 3)
 
-	GameManager.stolen_value_today += item_value
-	GameManager.stolen_count_today += 1
+	GameManager.stolen_items.append({
+		"type_id": type_id,
+		"deco": deco,
+		"is_magic": bool(entry["is_magic"]),
+		"value": item_value,
+	})
 	_apply_honor_change(honor_loss, false)
+	AudioManager.play_sfx(BAG_OF_COINS_SFX)
+	entry["removing"] = true
+	_desk_items.erase(entry)
+	_update_action_buttons()
 	_remove_desk_item_animated(entry, false)
 
 func _remove_desk_item_animated(entry: Dictionary, to_right: bool) -> void:
 	entry["removing"] = true
+	var inline_box := entry.get("inline_box") as Control
+	if is_instance_valid(inline_box):
+		inline_box.queue_free()
+	entry.erase("inline_box")
 	_desk_items.erase(entry)
 	_current_npc_items.erase(entry)
 	_sync_desk_items_to_save()
@@ -719,6 +911,7 @@ func _remove_desk_item_animated(entry: Dictionary, to_right: bool) -> void:
 			_runes.remove_at(i)
 
 	if not is_instance_valid(ctrl):
+		_check_ready_for_next_step()
 		return
 	ctrl.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var tween := create_tween().set_parallel(true)
@@ -730,6 +923,7 @@ func _remove_desk_item_animated(entry: Dictionary, to_right: bool) -> void:
 	await tween.finished
 	if is_instance_valid(ctrl):
 		ctrl.queue_free()
+	_check_ready_for_next_step()
 
 func _flash_vignette(color: Color) -> void:
 	var mat := vignette_rect.material as ShaderMaterial
@@ -745,43 +939,59 @@ func _flash_vignette(color: Color) -> void:
 func _apply_honor_change(delta: int, play_coins: bool) -> void:
 	if delta > 0:
 		GameManager.honor = clampi(GameManager.honor + delta, -100, 100)
-		AudioManager.play_sfx(CAMPANA_PEQUE_SFX)
+		AudioManager.play_sfx(CAMPANA_PEQUE_SFX, -8.0)
 		_flash_vignette(VIGNETTE_WHITE)
 	elif delta < 0:
 		GameManager.honor = clampi(GameManager.honor + delta, -100, 100)
-		AudioManager.play_sfx(CAMPANA_GRANDE_SFX)
+		AudioManager.play_sfx(CAMPANA_GRANDE_SFX, -8.0)
 		_flash_vignette(VIGNETTE_RED)
 	if play_coins:
 		AudioManager.play_sfx(BAG_OF_COINS_SFX)
 	_update_day_progress_label()
 
-func _is_item_prohibited(type_id: String, deco: String, is_magic: bool) -> bool:
+func _is_item_required_to_confiscate(type_id: String, deco: String, is_magic: bool) -> bool:
 	match GameManager.current_day:
-		1:
-			if deco in ["corona", "esmeralda", "moneda"]:
-				return type_id != "pocion"
-			return false
-		2:
-			if deco in ["espada", "fuego", "calavera", "ojo"]:
-				return type_id != "libro"
-			return false
 		3:
-			if deco in ["gema", "moneda"]:
-				return not is_magic
-			return false
+			return type_id == GameManager.day3_confiscate_type
 		4:
-			if type_id == "escudo" or deco == "calavera":
-				return deco != "fuego"
-			return false
+			return deco in CATEGORY_DECOS.get(GameManager.day4_confiscate_category, [])
 		5:
-			var is_sacred := deco in ["luna", "corona", "gema"]
-			return not (is_sacred and not is_magic)
+			return is_magic
 	return false
 
-func _has_prohibited_npc_item() -> bool:
+func _has_unconfiscated_required_item() -> bool:
 	for entry in _current_npc_items:
-		if _is_item_prohibited(str(entry["type_id"]), str(entry["deco"]), bool(entry["is_magic"])):
+		if bool(entry.get("removing", false)):
+			continue
+		if _is_item_required_to_confiscate(str(entry["type_id"]), str(entry["deco"]), bool(entry["is_magic"])):
 			return true
+	return false
+
+func _has_magic_npc_item() -> bool:
+	for entry in _current_npc_items:
+		if bool(entry.get("is_magic", false)):
+			return true
+	return false
+
+func _has_category_npc_item(category: String) -> bool:
+	var decos: Array = CATEGORY_DECOS.get(category, [])
+	for entry in _current_npc_items:
+		if str(entry.get("deco", "")) in decos:
+			return true
+	return false
+
+func _is_npc_prohibited() -> bool:
+	match GameManager.current_day:
+		1:
+			return int(GameManager.current_npc_appearance.get("color_idx", -1)) == GameManager.day1_banned_color_index
+		2:
+			return not _has_magic_npc_item()
+		3:
+			return _has_magic_npc_item()
+		4:
+			return true
+		5:
+			return _has_category_npc_item(GameManager.day5_prohibited_category)
 	return false
 
 func _set_vignette(color: Color, intensity: float) -> void:
@@ -795,9 +1005,21 @@ func _set_vignette_intensity(value: float) -> void:
 	if mat:
 		mat.set_shader_parameter("intensity", value)
 
+func _update_action_buttons() -> void:
+	if is_transitioning or is_day_ending or _waiting_desk_clear:
+		btn_cobrar.disabled = true
+		btn_arrestar.disabled = true
+	else:
+		var missing_confiscation := _has_unconfiscated_required_item()
+		btn_arrestar.disabled = missing_confiscation
+		btn_cobrar.disabled = missing_confiscation
+
 func _set_actions_enabled(enabled: bool) -> void:
-	btn_cobrar.disabled = not enabled
-	btn_arrestar.disabled = not enabled
+	if not enabled:
+		btn_cobrar.disabled = true
+		btn_arrestar.disabled = true
+	else:
+		_update_action_buttons()
 
 func _open_book() -> void:
 	if book_overlay.visible:
@@ -824,7 +1046,7 @@ func _on_prev_page_pressed() -> void:
 	AudioManager.play_sfx(LIBRO_OPEN_SFX)
 
 func _get_max_unlocked_book_page() -> int:
-	return clampi(1 + ceili(float(GameManager.current_day) / 2.0), 1, MAX_BOOK_PAGES)
+	return clampi(1 + GameManager.current_day, 1, MAX_BOOK_PAGES)
 
 func _on_next_page_pressed() -> void:
 	if current_book_page >= _get_max_unlocked_book_page():
@@ -849,18 +1071,11 @@ func _update_book_page_ui() -> void:
 		1:
 			_populate_book_glossary_page(left_page)
 			_populate_book_categories_page(right_page)
-		2:
-			_populate_book_day_page(left_page, 1)
-			if GameManager.current_day >= 2:
-				_populate_book_day_page(right_page, 2)
-		3:
-			if GameManager.current_day >= 3:
-				_populate_book_day_page(left_page, 3)
-			if GameManager.current_day >= 4:
-				_populate_book_day_page(right_page, 4)
-		4:
-			if GameManager.current_day >= 5:
-				_populate_book_day_page(left_page, 5)
+		_:
+			var day := current_book_page - 1
+			if day <= GameManager.current_day:
+				_populate_book_lore_page(left_page, day)
+				_populate_book_day_page(right_page, day)
 
 func _clear_container(container: Node) -> void:
 	for child in container.get_children():
@@ -921,13 +1136,13 @@ func _populate_book_glossary_page(page: VBoxContainer) -> void:
 		"%s: Obj. brujo" % _colored_tag("Calavera", "#5a5a5a"),
 		"%s: Obj. clérigo" % _colored_tag("Luna", "#006e9e"),
 		"%s: Obj. mago" % _colored_tag("Ojo", "#3b2896"),
-		"%s: Obj. guerrero" % _colored_tag("Espada", "#4f5b66"),
+		"%s: Obj. carpintería" % _colored_tag("Hacha", "#4f5b66"),
 		"%s: Obj. alquimia" % _colored_tag("Fuego", "#c44d00"),
 		"%s: Obj. de lujo" % _colored_tag("Gema", "#7b1fa2"),
 		"%s: Obj. druida" % _colored_tag("Esmeralda", "#157524"),
 		"%s: Obj. económico" % _colored_tag("Moneda", "#997a00"),
 		"%s: Armas" % _colored_tag("Escudos", "#4f5b66"),
-		"Pociones: Consumibles",
+		"Botellas: Logística",
 		"Libros: Educación",
 	]
 	page.add_child(_make_book_rtl("\n".join(lines), 16))
@@ -949,6 +1164,96 @@ func _populate_book_categories_page(page: VBoxContainer) -> void:
 			row.add_child(_make_deco_icon(cell))
 		page.add_child(row)
 
+func _get_day_lore_tokens(day: int, on_dark_bg: bool) -> Array:
+	var color_idx := clampi(GameManager.day1_banned_color_index, 0, OUTFIT_COLOR_NAMES.size() - 1)
+	var color_name: String = OUTFIT_COLOR_NAMES[color_idx]
+	var color_hex: String = OUTFIT_COLOR_HEX_DARK[color_idx] if on_dark_bg else OUTFIT_COLOR_HEX_PAPER[color_idx]
+	var magic_hex := "#c278f0" if on_dark_bg else "#8a1be0"
+	var magic_tag := _colored_tag("Mágica", magic_hex)
+	var magic_pl_tag := _colored_tag("Mágicos", magic_hex)
+	var escudo_icon: Texture2D = ITEM_TEMPLATES[0]["borde"]
+	var libro_icon: Texture2D = ITEM_TEMPLATES[1]["borde"]
+	var pocion_icon: Texture2D = ITEM_TEMPLATES[2]["borde"]
+
+	match day:
+		1:
+			return [
+				"Su Majestad, afectado por su daltonismo, no soporta ver a nadie vestir de ",
+				_colored_tag(color_name, color_hex),
+				". Ha ordenado arrestar sin demora a todo viajero que porte vestimenta de ese color.",
+			]
+		2:
+			return [
+				"Tras la purga anterior, el reino necesita ciudadanos valiosos. Ahora solo pueden pasar quienes porten al menos un objeto con aura ",
+				magic_tag,
+				". Para detectarlos, se te ha confiado el Lente Espectral.",
+			]
+		3:
+			var need_tokens: Array = []
+			match GameManager.day3_confiscate_type:
+				"libro":
+					need_tokens = ["fomentar la ", _colored_tag("Educación ", "#8a5a19" if not on_dark_bg else "#f0b85a"), libro_icon, " confiscando libros."]
+				"escudo":
+					need_tokens = ["reforzar la ", _colored_tag("Seguridad ", "#4f5b66" if not on_dark_bg else "#9ab0c2"), escudo_icon, " confiscando escudos."]
+				_:
+					need_tokens = ["mejorar la ", _colored_tag("Logística ", "#1e6b5c" if not on_dark_bg else "#5ce0c5"), pocion_icon, " confiscando botellas."]
+			var res: Array = ["El rey exige "]
+			res.append_array(need_tokens)
+			res.append(" Además, tras un supuesto atentado arcano, quedan prohibidos los objetos ")
+			res.append(magic_pl_tag)
+			res.append(".\n\n")
+			var note_hex := "#e0b866" if on_dark_bg else "#6e4715"
+			res.append(_colored_tag("Nota personal: ¿Debería quedarme con los objetos que el rey no reclama? De otro modo, no sé cómo llegaré a fin de mes...", note_hex))
+			return res
+		4:
+			var cat_name: String = CATEGORY_TITLES.get(GameManager.day4_confiscate_category, "Objetos")
+			var cat_cells: Array = CATEGORY_CELLS.get(GameManager.day4_confiscate_category, [])
+			var res: Array = [
+				"El reino prospera bajo el orden real y cierra sus puertas: todo viajero debe ser arrestado. Antes de enviarlos a prisión, confisca los ",
+				_colored_tag(cat_name, "#9e6b00" if not on_dark_bg else "#f5c445"),
+				" ",
+			]
+			for c in cat_cells:
+				res.append(c)
+				res.append(" ")
+			res.append("que hacen falta en las arcas.")
+			return res
+		5:
+			var cat_name: String = CATEGORY_TITLES.get(GameManager.day5_prohibited_category, "Objetos")
+			var cat_cells: Array = CATEGORY_CELLS.get(GameManager.day5_prohibited_category, [])
+			var res: Array = [
+				"Se rumorea que hay espías infiltrándose en la ciudad. Arresta a quienes lleven ",
+				_colored_tag(cat_name, "#9e1f1f" if not on_dark_bg else "#ff6b6b"),
+				" ",
+			]
+			for c in cat_cells:
+				res.append(c)
+				res.append(" ")
+			res.append("y confisca todos los objetos ")
+			res.append(magic_pl_tag)
+			res.append(".")
+			return res
+	return []
+
+func _show_day_lore_overlay(day: int) -> void:
+	lore_title_label.text = "DÍA %d" % day
+	lore_text_label.clear()
+	_append_book_tokens(lore_text_label, _get_day_lore_tokens(day, true))
+	lore_overlay.visible = true
+
+func _on_lore_continue_pressed() -> void:
+	GameManager.day_lore_seen = true
+	GameManager.save_game()
+	lore_overlay.visible = false
+	AudioManager.play_sfx(LIBRO_CLOSE_SFX)
+
+func _populate_book_lore_page(page: VBoxContainer, day: int) -> void:
+	page.add_theme_constant_override("separation", 6)
+	var rtl := _make_book_rtl("", 16)
+	rtl.append_text("[b]CRÓNICA DEL DÍA %d[/b]\n\n" % day)
+	_append_book_tokens(rtl, _get_day_lore_tokens(day, false))
+	page.add_child(rtl)
+
 func _populate_book_day_page(page: VBoxContainer, day: int) -> void:
 	page.add_theme_constant_override("separation", 6)
 	var reward_line := "Pago por arresto: %d monedas" % GameManager.get_arrest_reward_for_day(day)
@@ -956,48 +1261,73 @@ func _populate_book_day_page(page: VBoxContainer, day: int) -> void:
 		reward_line = "Pago por arresto hoy: %d monedas" % GameManager.arrest_reward_today
 
 	var rtl := _make_book_rtl("", 16)
-	rtl.append_text("[b]DÍA %d[/b]\n%s\n\n" % [day, reward_line])
+	rtl.append_text("[b]REGLA DÍA %d[/b]\n%s\n\n" % [day, reward_line])
 
 	var escudo_icon: Texture2D = ITEM_TEMPLATES[0]["borde"]
 	var libro_icon: Texture2D = ITEM_TEMPLATES[1]["borde"]
 	var pocion_icon: Texture2D = ITEM_TEMPLATES[2]["borde"]
 	var magic_tag := _colored_tag("Mágicos", "#8a1be0")
-	var magic_sg_tag := _colored_tag("Mágico", "#8a1be0")
+	var color_idx := clampi(GameManager.day1_banned_color_index, 0, OUTFIT_COLOR_NAMES.size() - 1)
+	var is_past := day < GameManager.current_day
+
+	if is_past:
+		rtl.append_text("[s]")
 
 	match day:
 		1:
 			_append_book_tokens(rtl, [
-				"Los objetos de [",
-				_colored_tag("Paladín ", "#9e6b00"), Vector2i(0, 0), ", ",
-				_colored_tag("Druida ", "#157524"), Vector2i(1, 2), ", ",
-				_colored_tag("Económicos ", "#997a00"), Vector2i(2, 2),
-				"] no pueden pasar, a no ser que sean [Consumibles ", pocion_icon,
-				"]. Todo lo demás, pasa.",
+				"Prohibido: Personas con vestimenta color ",
+				_colored_tag(OUTFIT_COLOR_NAMES[color_idx], OUTFIT_COLOR_HEX_PAPER[color_idx]),
+				". Todo lo demás, pasa.",
 			])
 		2:
 			_append_book_tokens(rtl, [
-				"Prohibidos los objetos peligrosos (",
-				Vector2i(1, 1), " ", Vector2i(2, 1), " ", Vector2i(1, 0), " ", Vector2i(0, 1),
-				"), salvo [Educación ", libro_icon, "]. Todo lo demás, pasa.",
+				"Prohibido: Personas SIN ningún objeto [%s (Lente)]. Quienes tengan al menos uno, pasan." % magic_tag,
 			])
 		3:
-			_append_book_tokens(rtl, [
-				"Los objetos valiosos (", Vector2i(0, 2), " ", Vector2i(2, 2),
-				") solo pasan si son [%s (Lente)]. Los de [" % magic_tag,
-				_colored_tag("Clérigo ", "#006e9e"), Vector2i(2, 0), "] siempre pasan.",
-			])
+			var conf_tokens: Array = []
+			match GameManager.day3_confiscate_type:
+				"libro":
+					conf_tokens = ["[Educación ", libro_icon, "]"]
+				"escudo":
+					conf_tokens = ["[Seguridad ", escudo_icon, "]"]
+				_:
+					conf_tokens = ["[Logística ", pocion_icon, "]"]
+			var tokens3: Array = [
+				"Prohibido (Arrestar): Quienes lleven objetos [%s (Lente)].\nConfiscar antes de cobrar: " % magic_tag,
+			]
+			tokens3.append_array(conf_tokens)
+			tokens3.append(".")
+			_append_book_tokens(rtl, tokens3)
 		4:
-			_append_book_tokens(rtl, [
-				"Prohibidos los objetos de [", _colored_tag("Brujo ", "#5a5a5a"), Vector2i(1, 0),
-				"] y las [", _colored_tag("Armas ", "#4f5b66"), escudo_icon,
-				"] (excepto si llevan ", Vector2i(2, 1), "). Todo lo demás, pasa.",
-			])
+			var cat_name: String = CATEGORY_TITLES.get(GameManager.day4_confiscate_category, "Objetos")
+			var cat_cells: Array = CATEGORY_CELLS.get(GameManager.day4_confiscate_category, [])
+			var tokens4: Array = [
+				"Prohibido: TODOS los viajeros deben ser arrestados.\nConfiscar: ",
+				cat_name,
+				" (",
+			]
+			for c in cat_cells:
+				tokens4.append(c)
+				tokens4.append(" ")
+			tokens4.append(").")
+			_append_book_tokens(rtl, tokens4)
 		5:
-			_append_book_tokens(rtl, [
-				"Solo pasan los objetos sagrados (",
-				Vector2i(2, 0), " ", Vector2i(0, 0), " ", Vector2i(0, 2),
-				") que NO sean [%s (Lente)]. Todo lo demás debe ser arrestado." % magic_sg_tag,
-			])
+			var cat_name: String = CATEGORY_TITLES.get(GameManager.day5_prohibited_category, "Objetos")
+			var cat_cells: Array = CATEGORY_CELLS.get(GameManager.day5_prohibited_category, [])
+			var tokens5: Array = [
+				"Prohibido (Arrestar): Quienes lleven ",
+				cat_name,
+				" (",
+			]
+			for c in cat_cells:
+				tokens5.append(c)
+				tokens5.append(" ")
+			tokens5.append(").\nConfiscar antes de cobrar: [%s (Lente)]." % magic_tag)
+			_append_book_tokens(rtl, tokens5)
+
+	if is_past:
+		rtl.append_text("[/s]")
 
 	page.add_child(rtl)
 
@@ -1011,7 +1341,7 @@ func _show_day_summary(timed_out: bool = false) -> void:
 	for entry in _desk_items:
 		if bool(entry.get("removing", false)) or (entry in _current_npc_items):
 			continue
-		if _is_item_prohibited(str(entry["type_id"]), str(entry["deco"]), bool(entry["is_magic"])):
+		if _is_item_required_to_confiscate(str(entry["type_id"]), str(entry["deco"]), bool(entry["is_magic"])):
 			auto_confiscated_honor += 6
 	if auto_confiscated_honor > 0:
 		GameManager.honor = clampi(GameManager.honor + auto_confiscated_honor, -100, 100)

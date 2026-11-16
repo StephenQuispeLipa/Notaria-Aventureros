@@ -352,7 +352,7 @@ theme_override_colors/font_outline_color = Color(0.18, 0.1, 0.04, 1)
 theme_override_constants/outline_size = 2
 theme_override_fonts/font = ExtResource("4_silver")
 theme_override_font_sizes/font_size = 24
-text = "Politicas"
+text = "Notas"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -558,6 +558,67 @@ theme_override_colors/font_disabled_color = Color(0.55, 0.45, 0.35, 0.45)
 theme_override_fonts/font = ExtResource("3_mono")
 theme_override_font_sizes/font_size = 16
 text = "=>"
+flat = true
+
+[node name="LoreOverlay" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LoreBlackBg" type="ColorRect" parent="LoreOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="LoreVBox" type="VBoxContainer" parent="LoreOverlay"]
+layout_mode = 0
+offset_left = 55.0
+offset_top = 28.0
+offset_right = 515.0
+offset_bottom = 294.0
+theme_override_constants/separation = 14
+alignment = 1
+
+[node name="LoreTitleLabel" type="Label" parent="LoreOverlay/LoreVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_fonts/font = ExtResource("3_mono")
+theme_override_font_sizes/font_size = 24
+text = "DÍA 1"
+horizontal_alignment = 1
+
+[node name="LoreTextLabel" type="RichTextLabel" parent="LoreOverlay/LoreVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(460, 130)
+layout_mode = 2
+theme_override_colors/default_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_fonts/normal_font = ExtResource("3_mono")
+theme_override_font_sizes/normal_font_size = 16
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="BtnLoreContinue" type="Button" parent="LoreOverlay/LoreVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_colors/font_hover_color = Color(1, 0.85, 0.35, 1)
+theme_override_fonts/font = ExtResource("3_mono")
+theme_override_font_sizes/font_size = 20
+text = "CONTINUAR"
 flat = true
 
 [node name="PauseMenu" parent="." unique_id=1238947580 instance=ExtResource("2_pause_menu")]
