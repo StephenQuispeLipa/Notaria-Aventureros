@@ -8,6 +8,7 @@ const CAMPANA_PEQUE_SFX: AudioStream = preload("res://Assets/Audio/SFX/campana-p
 const BAG_OF_COINS_SFX: AudioStream = preload("res://Assets/Audio/SFX/bag-of-coins.wav")
 const TOS_SFX: AudioStream = preload("res://Assets/Audio/SFX/tos.wav")
 const ESCRITURA_SFX: AudioStream = preload("res://Assets/Audio/SFX/escritura.wav")
+const DESLIZAMIENTO_SFX: AudioStream = preload("res://Assets/Audio/SFX/deslizamiento.wav")
 
 const VIGNETTE_WHITE := Color(1.0, 1.0, 1.0, 0.9)
 const VIGNETTE_RED := Color(0.95, 0.12, 0.12, 0.95)
@@ -864,7 +865,7 @@ func _confiscate_entry(entry: Dictionary) -> void:
 	entry["removing"] = true
 	_desk_items.erase(entry)
 	_update_action_buttons()
-	_remove_desk_item_animated(entry, true)
+	_remove_desk_item_animated(entry, true, true)
 
 func _on_robar_pressed() -> void:
 	if GameManager.current_day < 3 or _selected_item.is_empty() or bool(_selected_item.get("removing", false)):
@@ -899,16 +900,18 @@ func _steal_entry(entry: Dictionary) -> void:
 	entry["removing"] = true
 	_desk_items.erase(entry)
 	_update_action_buttons()
-	_remove_desk_item_animated(entry, false)
+	_remove_desk_item_animated(entry, false, false)
 
-func _remove_desk_item_animated(entry: Dictionary, to_right: bool) -> void:
+func _remove_desk_item_animated(entry: Dictionary, to_right: bool, keep_npc_ownership: bool = false) -> void:
+	AudioManager.play_sfx(DESLIZAMIENTO_SFX)
 	entry["removing"] = true
 	var inline_box := entry.get("inline_box") as Control
 	if is_instance_valid(inline_box):
 		inline_box.queue_free()
 	entry.erase("inline_box")
 	_desk_items.erase(entry)
-	_current_npc_items.erase(entry)
+	if not keep_npc_ownership:
+		_current_npc_items.erase(entry)
 	_sync_desk_items_to_save()
 	GameManager.save_game()
 
