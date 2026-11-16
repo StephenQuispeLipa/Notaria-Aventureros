@@ -53,6 +53,10 @@ var bus_sfx_idx: int = 2
 
 @onready var audio_open: AudioStreamPlayer = %AudioOpen
 @onready var audio_close: AudioStreamPlayer = %AudioClose
+@onready var endings_label: Label = %EndingsLabel
+@onready var new_game_overlay: Control = %NewGameOverlay
+@onready var new_game_story_text: RichTextLabel = %NewGameStoryText
+@onready var btn_start_adventure: Button = %BtnStartAdventure
 
 func _ready() -> void:
 	scroll_panel.visible = false
@@ -61,6 +65,7 @@ func _ready() -> void:
 	_setup_audio_buses()
 	_update_fullscreen_button()
 	_update_continue_button()
+	_update_endings_label()
 
 	slider_master.value_changed.connect(_on_master_changed)
 	slider_bgm.value_changed.connect(_on_bgm_changed)
@@ -76,6 +81,7 @@ func _ready() -> void:
 
 	btn_confirm_exit.pressed.connect(_on_confirm_exit_pressed)
 	btn_cancel_exit.pressed.connect(_on_cancel_exit_pressed)
+	btn_start_adventure.pressed.connect(_on_start_adventure_pressed)
 
 	var sign_buttons: Array[TextureButton] = [
 		sign_jugar,
@@ -87,6 +93,14 @@ func _ready() -> void:
 	for btn in sign_buttons:
 		btn.mouse_entered.connect(_on_sign_mouse_entered.bind(btn))
 		btn.mouse_exited.connect(_on_sign_mouse_exited.bind(btn))
+
+func _update_endings_label() -> void:
+	if not is_instance_valid(endings_label):
+		return
+	var count := GameManager.unlocked_endings.size()
+	endings_label.visible = count > 0
+	if count > 0:
+		endings_label.text = "Finales %d/5" % count
 
 func _setup_audio_buses() -> void:
 	bus_master_idx = AudioServer.get_bus_index("Master")
@@ -177,9 +191,23 @@ func _on_sign_mouse_exited(btn: TextureButton) -> void:
 
 func _on_jugar_pressed() -> void:
 	AudioManager.play_sfx(PLAY_SFX)
-	GameManager.start_new_game()
 	if scroll_panel.visible:
 		close_parchment()
+	new_game_story_text.text = (
+		"[center][color=#ffd27d][font_size=24]EL REINO DE KOKANI BUENHOMBRE[/font_size][/color]\n\n"
+		+ "El recién coronado heredero, el malvado rey [color=#ff6b6b][font_size=20]Kokani Buenhombre[/font_size][/color], "
+		+ "ha impuesto [color=#ff9f43]impuestos despiadados[/color] a todos los aventureros como su implacable estrategia para salvar el reino.\n\n"
+		+ "Recorrer mazmorras ya no es rentable. Para subsistir —[color=#a3e635]al menos una semana más[/color]—, "
+		+ "no te quedó más remedio que aceptar el puesto de [color=#7dd3fc]cobrador de impuestos[/color] en la notaría real.[/center]"
+	)
+	new_game_overlay.modulate.a = 0.0
+	new_game_overlay.visible = true
+	var tween := create_tween()
+	tween.tween_property(new_game_overlay, "modulate:a", 1.0, 0.35).set_ease(Tween.EASE_OUT)
+
+func _on_start_adventure_pressed() -> void:
+	AudioManager.play_sfx(PLAY_SFX)
+	GameManager.start_new_game()
 	get_tree().change_scene_to_file("res://Scenes/Desk/Desk_View.tscn")
 
 func _on_continuar_pressed() -> void:

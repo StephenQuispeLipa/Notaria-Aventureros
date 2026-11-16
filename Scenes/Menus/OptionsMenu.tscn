@@ -250,10 +250,12 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.35, 0.22, 0.25, 1)
 theme_override_fonts/font = ExtResource("5_silver")
 theme_override_font_sizes/font_size = 16
-text = "Desarrollo y Código"
+text = "Desarrollado por
+Marraqueta Studios"
 horizontal_alignment = 1
 
 [node name="Credit3" type="Label" parent="ScrollPanel/ScrollMargin/ContentContainer/CreditsList" unique_id=699133809]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.35, 0.22, 0.25, 1)
 theme_override_fonts/font = ExtResource("5_silver")
@@ -463,3 +465,82 @@ bus = &"SFX"
 unique_name_in_owner = true
 stream = ExtResource("7_audio_close")
 bus = &"SFX"
+
+[node name="EndingsLabel" type="Label" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 12.0
+offset_top = -28.0
+offset_right = 180.0
+offset_bottom = -8.0
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.92, 0.86, 0.74, 1)
+theme_override_colors/font_shadow_color = Color(0.12, 0.08, 0.16, 0.85)
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("4_mono")
+theme_override_font_sizes/font_size = 16
+text = "Finales 0/5"
+vertical_alignment = 2
+
+[node name="NewGameOverlay" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NewGameBg" type="ColorRect" parent="NewGameOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="NewGameVBox" type="VBoxContainer" parent="NewGameOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 40.0
+offset_top = 24.0
+offset_right = -40.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="NewGameStoryText" type="RichTextLabel" parent="NewGameOverlay/NewGameVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(520, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/default_color = Color(0.94, 0.94, 0.94, 1)
+theme_override_fonts/normal_font = ExtResource("4_mono")
+theme_override_font_sizes/normal_font_size = 18
+bbcode_enabled = true
+text = "[center]Historia[/center]"
+fit_content = true
+scroll_active = false
+
+[node name="BtnStartAdventure" type="Button" parent="NewGameOverlay/NewGameVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.95, 0.85, 0.55, 1)
+theme_override_colors/font_hover_color = Color(1, 0.95, 0.7, 1)
+theme_override_fonts/font = ExtResource("4_mono")
+theme_override_font_sizes/font_size = 20
+text = "CONTINUAR ->"
+flat = true

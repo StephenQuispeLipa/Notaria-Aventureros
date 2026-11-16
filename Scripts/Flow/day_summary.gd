@@ -14,9 +14,31 @@ const ITEM_TYPE_NAMES: Dictionary = {
 }
 
 const ITEM_ICONS: Dictionary = {
-	"escudo": preload("res://Assets/Art/Items/PlantillaEscudo_Borde.png"),
-	"libro": preload("res://Assets/Art/Items/PlantillaLibro_Libro_Borde.png"),
-	"pocion": preload("res://Assets/Art/Items/Pocion_Borde.png"),
+	"escudo": {
+		"interior": preload("res://Assets/Art/Items/PlantillaEscudo_Interior.png"),
+		"borde": preload("res://Assets/Art/Items/PlantillaEscudo_Borde.png"),
+	},
+	"libro": {
+		"interior": preload("res://Assets/Art/Items/PlantillaLibro_Libro_Interior.png"),
+		"borde": preload("res://Assets/Art/Items/PlantillaLibro_Libro_Borde.png"),
+	},
+	"pocion": {
+		"interior": preload("res://Assets/Art/Items/Pocion_Interior.png"),
+		"borde": preload("res://Assets/Art/Items/Pocion_Borde.png"),
+	},
+}
+
+const DECO_CLASSES: Dictionary = {
+	"corona": {"label": "Realeza", "color": Color(0.95, 0.89, 0.74, 1.0)},
+	"calavera": {"label": "Nigromante", "color": Color(0.55, 0.14, 0.16, 1.0)},
+	"luna": {"label": "Mago", "color": Color(0.16, 0.24, 0.52, 1.0)},
+	"ojo": {"label": "Vidente", "color": Color(0.14, 0.14, 0.17, 1.0)},
+	"hacha": {"label": "Carpintero", "color": Color(0.52, 0.33, 0.20, 1.0)},
+	"espada": {"label": "Carpintero", "color": Color(0.52, 0.33, 0.20, 1.0)},
+	"fuego": {"label": "Alquimista", "color": Color(0.52, 0.54, 0.58, 1.0)},
+	"gema": {"label": "Joyero", "color": Color(0.52, 0.22, 0.72, 1.0)},
+	"esmeralda": {"label": "Naturista", "color": Color(0.15, 0.45, 0.22, 1.0)},
+	"moneda": {"label": "Mercader", "color": Color(0.78, 0.82, 0.88, 1.0)},
 }
 
 @onready var left_title: Label = %LeftTitle
@@ -74,28 +96,57 @@ func _show_stolen_items_page() -> void:
 			if not (item is Dictionary):
 				continue
 			var row := HBoxContainer.new()
-			row.add_theme_constant_override("separation", 4)
+			row.add_theme_constant_override("separation", 6)
 
-			var icon := TextureRect.new()
-			icon.texture = ITEM_ICONS.get(str(item.get("type_id", "escudo")), ITEM_ICONS["escudo"])
-			icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-			icon.custom_minimum_size = Vector2(14, 14)
-			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			row.add_child(icon)
+			var t_id := str(item.get("type_id", "escudo"))
+			var deco := str(item.get("deco", "corona"))
+			var icon_set: Dictionary = ITEM_ICONS.get(t_id, ITEM_ICONS["escudo"])
+			var deco_info: Dictionary = DECO_CLASSES.get(deco, {"label": "Aventurero", "color": Color(0.8, 0.8, 0.8, 1.0)})
 
-			var type_name: String = ITEM_TYPE_NAMES.get(str(item.get("type_id", "escudo")), "Objeto")
+			var icon_box := Control.new()
+			icon_box.custom_minimum_size = Vector2(32, 32)
+			var icon_int := TextureRect.new()
+			icon_int.texture = icon_set["interior"]
+			icon_int.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			icon_int.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon_int.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon_int.set_anchors_preset(Control.PRESET_FULL_RECT)
+			var tint: Color = deco_info["color"]
+			if t_id == "libro":
+				tint = tint.darkened(0.22)
+			elif t_id == "pocion":
+				tint.a = 0.75
+			icon_int.self_modulate = tint
+			icon_box.add_child(icon_int)
+
+			var icon_borde := TextureRect.new()
+			icon_borde.texture = icon_set["borde"]
+			icon_borde.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			icon_borde.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon_borde.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			icon_borde.set_anchors_preset(Control.PRESET_FULL_RECT)
+			icon_box.add_child(icon_borde)
+			row.add_child(icon_box)
+
+			var info_vbox := VBoxContainer.new()
+			info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			info_vbox.add_theme_constant_override("separation", 1)
+
+			var type_name: String = ITEM_TYPE_NAMES.get(t_id, "Objeto")
+			var class_name_str: String = str(deco_info["label"])
 			var val := int(item.get("value", 1))
 			var lbl := Label.new()
-			lbl.text = "%s $%d" % [type_name, val]
-			lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			lbl.text = "%s de %s ($%d)" % [type_name, class_name_str, val]
 			lbl.add_theme_font_override("font", BOOK_FONT)
 			lbl.add_theme_font_size_override("font_size", 12)
 			lbl.add_theme_color_override("font_color", Color(0.22, 0.14, 0.16, 1.0))
-			row.add_child(lbl)
+			info_vbox.add_child(lbl)
+
+			var actions_row := HBoxContainer.new()
+			actions_row.add_theme_constant_override("separation", 10)
 
 			var btn_sell := Button.new()
-			btn_sell.text = "VENDER"
+			btn_sell.text = "[VENDER]"
 			btn_sell.flat = true
 			btn_sell.focus_mode = Control.FOCUS_NONE
 			btn_sell.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -105,7 +156,7 @@ func _show_stolen_items_page() -> void:
 			btn_sell.add_theme_color_override("font_hover_color", Color(0.08, 0.65, 0.2, 1.0))
 
 			var btn_keep := Button.new()
-			btn_keep.text = "MANTENER"
+			btn_keep.text = "[MANTENER]"
 			btn_keep.flat = true
 			btn_keep.focus_mode = Control.FOCUS_NONE
 			btn_keep.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
@@ -126,12 +177,14 @@ func _show_stolen_items_page() -> void:
 			btn_keep.pressed.connect(func():
 				btn_sell.disabled = true
 				btn_keep.disabled = true
-				btn_keep.text = "GUARDADO"
+				btn_keep.text = "[GUARDADO]"
 				_update_stolen_right_summary()
 			)
 
-			row.add_child(btn_sell)
-			row.add_child(btn_keep)
+			actions_row.add_child(btn_sell)
+			actions_row.add_child(btn_keep)
+			info_vbox.add_child(actions_row)
+			row.add_child(info_vbox)
 			stolen_list.add_child(row)
 
 	_update_stolen_right_summary()
@@ -182,8 +235,7 @@ func _show_balance_page() -> void:
 		left_title.text = "¡JUEGO COMPLETADO!"
 		btn_next_day.visible = true
 		btn_next_day.text = "CONTINUAR ->"
-		btn_restart.visible = true
-		btn_restart.text = "JUGAR DE NUEVO"
+		btn_restart.visible = false
 	else:
 		left_title.text = "BALANCE DÍA %d" % day
 		btn_next_day.visible = true
@@ -276,36 +328,62 @@ func _on_next_day_pressed() -> void:
 func _build_ending_text(is_game_over: bool) -> String:
 	var has_carpinteria_book := false
 	var has_alquimia_book := false
+	var has_any_book := false
+	var tool_hint := ""
 	for item in GameManager.stolen_items:
-		if str(item.get("type_id", "")) == "libro":
-			var deco := str(item.get("deco", ""))
+		var t_id := str(item.get("type_id", ""))
+		var deco := str(item.get("deco", ""))
+		if t_id == "libro":
+			has_any_book = true
 			if deco in ["hacha", "espada"]:
 				has_carpinteria_book = true
 			elif deco == "fuego":
 				has_alquimia_book = true
+		elif tool_hint.is_empty() and t_id in ["pocion", "escudo"]:
+			var item_phrase := "una botella" if t_id == "pocion" else "un escudo"
+			if deco == "fuego":
+				tool_hint = "Tus hijos no saben qué hacer solo con %s de alquimia." % item_phrase
+			elif deco in ["hacha", "espada"]:
+				tool_hint = "Tus hijos no saben qué hacer solo con %s de carpintería." % item_phrase
 
 	var title := ""
 	var body := ""
+	var ending_id := ""
+	var hint := ""
 	if not is_game_over and has_carpinteria_book and has_alquimia_book:
+		ending_id = "5"
 		title = "FINAL 5: ALQUIMIA DE MADERA Y ORO"
 		body = "Tu hijo compro un monton de madera para practicar carpinteria, pero tu hija, que estaba practicando alquimia, convirtio toda esa madera en oro. Lograron escapar del reino tirano."
 	else:
 		var high_honor := GameManager.honor >= 30
 		var high_money := (not is_game_over) and GameManager.money >= 50
 		if not high_honor and high_money:
+			ending_id = "1"
 			title = "FINAL 1: FORTUNA MANCHADA"
 			body = "Poco honor, mucho dinero.\nTe hiciste rico a costa del pueblo."
 		elif high_honor and high_money:
+			ending_id = "2"
 			title = "FINAL 2: INTEGRIDAD INQUEBRANTABLE"
 			body = "Mucho honor, mucho dinero.\nLograste lo impensable: pudiste sobrevivir sin cometer ilegalidades."
 		elif not high_honor and not high_money:
+			ending_id = "3"
 			title = "FINAL 3: RUINA Y DESHONRA"
 			body = "Poco honor, poco dinero.\nCometiste ilegalidades, pero no sobreviviste al hambre."
 		else:
+			ending_id = "4"
 			title = "FINAL 4: HONRADEZ HUMILDE"
 			body = "Mucho honor, poco dinero.\nSobreviviste al hambre, pero apenas alcanzo para tu familia."
 
-	return "[center][color=#ffd27d]%s[/color]\n\n%s\n\n[color=#aaaaaa]FIN DE LA HISTORIA[/color][/center]" % [title, body]
+		if GameManager.stolen_items.is_empty():
+			hint = "Para desbloquear un final, quédate objetos en lugar de venderlos."
+		elif has_any_book:
+			hint = "Tus hijos no quisieron estudiar los libros que trajiste."
+		elif not tool_hint.is_empty():
+			hint = tool_hint
+
+	GameManager.unlock_ending(ending_id)
+	var hint_block := "\n\n[color=#9fd3ff]%s[/color]" % hint if not hint.is_empty() else ""
+	return "[center][color=#ffd27d]%s[/color]\n\n%s%s\n\n[color=#aaaaaa]FIN DE LA HISTORIA[/color][/center]" % [title, body, hint_block]
 
 func _on_end_continue_pressed() -> void:
 	AudioManager.play_sfx(LIBRO_CLOSE_SFX)

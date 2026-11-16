@@ -8,6 +8,7 @@ const CAMPANA_PEQUE_SFX: AudioStream = preload("res://Assets/Audio/SFX/campana-p
 const BAG_OF_COINS_SFX: AudioStream = preload("res://Assets/Audio/SFX/bag-of-coins.wav")
 const TOS_SFX: AudioStream = preload("res://Assets/Audio/SFX/tos.wav")
 const ESCRITURA_SFX: AudioStream = preload("res://Assets/Audio/SFX/escritura.wav")
+const DESLIZAMIENTO_SFX: AudioStream = preload("res://Assets/Audio/SFX/deslizamiento.wav")
 
 const VIGNETTE_WHITE := Color(1.0, 1.0, 1.0, 0.9)
 const VIGNETTE_RED := Color(0.95, 0.12, 0.12, 0.95)
@@ -164,6 +165,7 @@ var _runes: Array[Dictionary] = []
 var _item_lens_shader_mat: ShaderMaterial = null
 var _rune_mask_shader_mat: ShaderMaterial = null
 var _vignette_tween: Tween = null
+var _honor_flash_tween: Tween = null
 var current_book_page: int = 1
 
 @onready var day_progress_label: Label = %DayProgressLabel
@@ -194,6 +196,9 @@ var current_book_page: int = 1
 @onready var book_page_label: Label = %BookPageLabel
 @onready var left_page: VBoxContainer = %LeftPage
 @onready var right_page: VBoxContainer = %RightPage
+@onready var left_scroll: ScrollContainer = %LeftScroll
+@onready var right_scroll: ScrollContainer = %RightScroll
+@onready var honor_flash_label: Label = %HonorFlashLabel
 @onready var lore_overlay: Control = %LoreOverlay
 @onready var lore_title_label: Label = %LoreTitleLabel
 @onready var lore_text_label: RichTextLabel = %LoreTextLabel
@@ -777,6 +782,8 @@ func _check_ready_for_next_step() -> void:
 		_spawn_current_npc()
 
 func _show_inline_actions_on_desk_items() -> void:
+	_hide_item_action_popup()
+	var container := item_action_popup.get_parent()
 	for entry in _desk_items:
 		if bool(entry.get("removing", false)):
 			continue
@@ -795,7 +802,8 @@ func _show_inline_actions_on_desk_items() -> void:
 		r_btn.visible = GameManager.current_day >= 3
 		c_btn.pressed.connect(_confiscate_entry.bind(entry))
 		r_btn.pressed.connect(_steal_entry.bind(entry))
-		item_action_popup.get_parent().add_child(inline_box)
+		container.add_child(inline_box)
+		container.move_child(inline_box, book_overlay.get_index())
 		inline_box.visible = true
 		entry["inline_box"] = inline_box
 		_position_inline_box(entry)
@@ -816,7 +824,7 @@ func _position_inline_box(entry: Dictionary) -> void:
 	inline_box.position = pos
 
 func _open_item_action_popup(entry: Dictionary, ctrl: Control) -> void:
-	if is_day_ending or _waiting_desk_clear:
+	if is_day_ending or _waiting_desk_clear or not _has_active_npc:
 		return
 	var click_pos := get_global_mouse_position()
 	_selected_item = entry
@@ -857,7 +865,7 @@ func _confiscate_entry(entry: Dictionary) -> void:
 	entry["removing"] = true
 	_desk_items.erase(entry)
 	_update_action_buttons()
-	_remove_desk_item_animated(entry, true)
+	_remove_desk_item_animated(entry, true, true)
 
 func _on_robar_pressed() -> void:
 	if GameManager.current_day < 3 or _selected_item.is_empty() or bool(_selected_item.get("removing", false)):
@@ -892,16 +900,18 @@ func _steal_entry(entry: Dictionary) -> void:
 	entry["removing"] = true
 	_desk_items.erase(entry)
 	_update_action_buttons()
-	_remove_desk_item_animated(entry, false)
+	_remove_desk_item_animated(entry, false, false)
 
-func _remove_desk_item_animated(entry: Dictionary, to_right: bool) -> void:
+func _remove_desk_item_animated(entry: Dictionary, to_right: bool, keep_npc_ownership: bool = false) -> void:
+	AudioManager.play_sfx(DESLIZAMIENTO_SFX)
 	entry["removing"] = true
 	var inline_box := entry.get("inline_box") as Control
 	if is_instance_valid(inline_box):
 		inline_box.queue_free()
 	entry.erase("inline_box")
 	_desk_items.erase(entry)
-	_current_npc_items.erase(entry)
+	if not keep_npc_ownership:
+		_current_npc_items.erase(entry)
 	_sync_desk_items_to_save()
 	GameManager.save_game()
 
@@ -941,13 +951,26 @@ func _apply_honor_change(delta: int, play_coins: bool) -> void:
 		GameManager.honor = clampi(GameManager.honor + delta, -100, 100)
 		AudioManager.play_sfx(CAMPANA_PEQUE_SFX, -8.0)
 		_flash_vignette(VIGNETTE_WHITE)
+		_flash_honor_label("+Honor", Color(0.95, 1.0, 0.95, 1.0))
 	elif delta < 0:
 		GameManager.honor = clampi(GameManager.honor + delta, -100, 100)
 		AudioManager.play_sfx(CAMPANA_GRANDE_SFX, -8.0)
 		_flash_vignette(VIGNETTE_RED)
+		_flash_honor_label("-Honor", Color(1.0, 0.35, 0.35, 1.0))
 	if play_coins:
 		AudioManager.play_sfx(BAG_OF_COINS_SFX)
 	_update_day_progress_label()
+
+func _flash_honor_label(label_text: String, color: Color) -> void:
+	if not is_instance_valid(honor_flash_label):
+		return
+	if _honor_flash_tween and _honor_flash_tween.is_valid():
+		_honor_flash_tween.kill()
+	honor_flash_label.text = label_text
+	honor_flash_label.add_theme_color_override("font_color", color)
+	honor_flash_label.modulate.a = 1.0
+	_honor_flash_tween = create_tween()
+	_honor_flash_tween.tween_property(honor_flash_label, "modulate:a", 0.0, 0.65).set_ease(Tween.EASE_IN)
 
 func _is_item_required_to_confiscate(type_id: String, deco: String, is_magic: bool) -> bool:
 	match GameManager.current_day:
@@ -1066,6 +1089,10 @@ func _update_book_page_ui() -> void:
 
 	_clear_container(left_page)
 	_clear_container(right_page)
+	if is_instance_valid(left_scroll):
+		left_scroll.scroll_vertical = 0
+	if is_instance_valid(right_scroll):
+		right_scroll.scroll_vertical = 0
 
 	match current_book_page:
 		1:

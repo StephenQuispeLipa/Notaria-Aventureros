@@ -31,6 +31,7 @@ var day4_confiscate_category: String = "sagrados"
 var day5_prohibited_category: String = "peligrosos"
 var day_lore_seen: bool = false
 var current_npc_appearance: Dictionary = {}
+var unlocked_endings: Array[String] = []
 
 var total_charged: int = 0
 var total_arrested: int = 0
@@ -193,6 +194,13 @@ func delete_save() -> void:
 func _ready() -> void:
 	load_settings()
 
+func unlock_ending(ending_id: String) -> void:
+	if ending_id.is_empty():
+		return
+	if not unlocked_endings.has(ending_id):
+		unlocked_endings.append(ending_id)
+		save_settings()
+
 func save_settings() -> void:
 	var cfg := ConfigFile.new()
 	cfg.set_value("audio", "master", _get_bus_linear("Master"))
@@ -201,6 +209,7 @@ func save_settings() -> void:
 	var mode := DisplayServer.window_get_mode()
 	var is_fs := mode == DisplayServer.WINDOW_MODE_FULLSCREEN or mode == DisplayServer.WINDOW_MODE_EXCLUSIVE_FULLSCREEN
 	cfg.set_value("display", "fullscreen", is_fs)
+	cfg.set_value("progress", "unlocked_endings", unlocked_endings)
 	cfg.save(SETTINGS_PATH)
 
 func load_settings() -> void:
@@ -212,6 +221,13 @@ func load_settings() -> void:
 	_apply_bus_linear("SFX", float(cfg.get_value("audio", "sfx", 1.0)))
 	var is_fs := bool(cfg.get_value("display", "fullscreen", false))
 	DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_FULLSCREEN if is_fs else DisplayServer.WINDOW_MODE_WINDOWED)
+	unlocked_endings.clear()
+	var saved_endings: Variant = cfg.get_value("progress", "unlocked_endings", [])
+	if saved_endings is Array:
+		for e in saved_endings:
+			var s := str(e)
+			if not s.is_empty() and not unlocked_endings.has(s):
+				unlocked_endings.append(s)
 
 func _get_bus_linear(bus_name: String) -> float:
 	var idx := AudioServer.get_bus_index(bus_name)
