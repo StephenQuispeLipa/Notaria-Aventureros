@@ -275,17 +275,28 @@ func _on_next_day_pressed() -> void:
 func _build_ending_text(is_game_over: bool) -> String:
 	var has_carpinteria_book := false
 	var has_alquimia_book := false
+	var has_any_book := false
+	var tool_hint := ""
 	for item in GameManager.stolen_items:
-		if str(item.get("type_id", "")) == "libro":
-			var deco := str(item.get("deco", ""))
+		var t_id := str(item.get("type_id", ""))
+		var deco := str(item.get("deco", ""))
+		if t_id == "libro":
+			has_any_book = true
 			if deco in ["hacha", "espada"]:
 				has_carpinteria_book = true
 			elif deco == "fuego":
 				has_alquimia_book = true
+		elif tool_hint.is_empty() and t_id in ["pocion", "escudo"]:
+			var item_phrase := "una botella" if t_id == "pocion" else "un escudo"
+			if deco == "fuego":
+				tool_hint = "Tus hijos no saben qué hacer solo con %s de alquimia." % item_phrase
+			elif deco in ["hacha", "espada"]:
+				tool_hint = "Tus hijos no saben qué hacer solo con %s de carpintería." % item_phrase
 
 	var title := ""
 	var body := ""
 	var ending_id := ""
+	var hint := ""
 	if not is_game_over and has_carpinteria_book and has_alquimia_book:
 		ending_id = "5"
 		title = "FINAL 5: ALQUIMIA DE MADERA Y ORO"
@@ -310,8 +321,16 @@ func _build_ending_text(is_game_over: bool) -> String:
 			title = "FINAL 4: HONRADEZ HUMILDE"
 			body = "Mucho honor, poco dinero.\nSobreviviste al hambre, pero apenas alcanzo para tu familia."
 
+		if GameManager.stolen_items.is_empty():
+			hint = "Para desbloquear un final, quédate objetos en lugar de venderlos."
+		elif has_any_book:
+			hint = "Tus hijos no quisieron estudiar los libros que trajiste."
+		elif not tool_hint.is_empty():
+			hint = tool_hint
+
 	GameManager.unlock_ending(ending_id)
-	return "[center][color=#ffd27d]%s[/color]\n\n%s\n\n[color=#aaaaaa]FIN DE LA HISTORIA[/color][/center]" % [title, body]
+	var hint_block := "\n\n[color=#9fd3ff]%s[/color]" % hint if not hint.is_empty() else ""
+	return "[center][color=#ffd27d]%s[/color]\n\n%s%s\n\n[color=#aaaaaa]FIN DE LA HISTORIA[/color][/center]" % [title, body, hint_block]
 
 func _on_end_continue_pressed() -> void:
 	AudioManager.play_sfx(LIBRO_CLOSE_SFX)

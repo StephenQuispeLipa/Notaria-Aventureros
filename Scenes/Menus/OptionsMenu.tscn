@@ -250,10 +250,12 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.35, 0.22, 0.25, 1)
 theme_override_fonts/font = ExtResource("5_silver")
 theme_override_font_sizes/font_size = 16
-text = "Desarrollo y Código"
+text = "Desarrollado por
+Marraqueta Studios"
 horizontal_alignment = 1
 
 [node name="Credit3" type="Label" parent="ScrollPanel/ScrollMargin/ContentContainer/CreditsList" unique_id=699133809]
+visible = false
 layout_mode = 2
 theme_override_colors/font_color = Color(0.35, 0.22, 0.25, 1)
 theme_override_fonts/font = ExtResource("5_silver")
