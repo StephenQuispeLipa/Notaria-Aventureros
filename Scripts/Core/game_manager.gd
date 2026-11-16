@@ -105,6 +105,8 @@ func has_save() -> bool:
 	return FileAccess.file_exists(SAVE_PATH)
 
 func save_game() -> void:
+	if dishonor_arrested:
+		return
 	var data := {
 		"current_day": current_day,
 		"money": money,

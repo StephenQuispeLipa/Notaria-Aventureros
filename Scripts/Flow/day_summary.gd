@@ -13,36 +13,16 @@ const ITEM_TYPE_NAMES: Dictionary = {
 	"pocion": "Botella",
 }
 
-const DECORACIONES_SHEET: Texture2D = preload("res://Assets/Art/Items/Decoraciones.png")
-
-const ITEM_ICONS: Dictionary = {
-	"escudo": {
-		"interior": preload("res://Assets/Art/Items/PlantillaEscudo_Interior.png"),
-		"borde": preload("res://Assets/Art/Items/PlantillaEscudo_Borde.png"),
-		"deco_pos": Vector2(10.0, 9.0),
-	},
-	"libro": {
-		"interior": preload("res://Assets/Art/Items/PlantillaLibro_Libro_Interior.png"),
-		"borde": preload("res://Assets/Art/Items/PlantillaLibro_Libro_Borde.png"),
-		"deco_pos": Vector2(11.0, 7.0),
-	},
-	"pocion": {
-		"interior": preload("res://Assets/Art/Items/Pocion_Interior.png"),
-		"borde": preload("res://Assets/Art/Items/Pocion_Borde.png"),
-		"deco_pos": Vector2(10.0, 14.0),
-	},
-}
-
 const DECO_CLASSES: Dictionary = {
-	"corona": {"label": "Paladín", "cell": Vector2i(0, 0), "color": Color(0.95, 0.89, 0.74, 1.0)},
-	"calavera": {"label": "Brujo", "cell": Vector2i(1, 0), "color": Color(0.72, 0.22, 0.24, 1.0)},
-	"luna": {"label": "Clérigo", "cell": Vector2i(2, 0), "color": Color(0.26, 0.44, 0.82, 1.0)},
-	"ojo": {"label": "Mago", "cell": Vector2i(0, 1), "color": Color(0.36, 0.28, 0.68, 1.0)},
-	"hacha": {"label": "Carpintería", "cell": Vector2i(1, 1), "color": Color(0.68, 0.45, 0.28, 1.0)},
-	"fuego": {"label": "Alquimia", "cell": Vector2i(2, 1), "color": Color(0.78, 0.45, 0.24, 1.0)},
-	"gema": {"label": "Lujo", "cell": Vector2i(0, 2), "color": Color(0.66, 0.34, 0.86, 1.0)},
-	"esmeralda": {"label": "Druida", "cell": Vector2i(1, 2), "color": Color(0.24, 0.68, 0.34, 1.0)},
-	"moneda": {"label": "Económico", "cell": Vector2i(2, 2), "color": Color(0.86, 0.82, 0.56, 1.0)},
+	"corona": {"label": "Paladín"},
+	"calavera": {"label": "Brujo"},
+	"luna": {"label": "Clérigo"},
+	"ojo": {"label": "Mago"},
+	"hacha": {"label": "Carpintería"},
+	"fuego": {"label": "Alquimia"},
+	"gema": {"label": "Lujo"},
+	"esmeralda": {"label": "Druida"},
+	"moneda": {"label": "Económico"},
 }
 
 @onready var left_title: Label = %LeftTitle
@@ -77,6 +57,7 @@ func _ready() -> void:
 	AudioManager.play_sfx(LIBRO_OPEN_SFX)
 	if GameManager.dishonor_arrested:
 		GameManager.dishonor_arrested = false
+		GameManager.delete_save()
 		end_story_text.text = _build_dishonor_ending_text()
 		end_story_overlay.visible = true
 		return
@@ -104,53 +85,12 @@ func _show_stolen_items_page() -> void:
 		for item in GameManager.stolen_items:
 			if not (item is Dictionary):
 				continue
-			var row := HBoxContainer.new()
-			row.add_theme_constant_override("separation", 6)
+			var row := VBoxContainer.new()
+			row.add_theme_constant_override("separation", 0)
 
 			var t_id := str(item.get("type_id", "escudo"))
 			var deco := str(item.get("deco", "corona"))
-			var icon_set: Dictionary = ITEM_ICONS.get(t_id, ITEM_ICONS["escudo"])
-			var deco_info: Dictionary = DECO_CLASSES.get(deco, {"label": "Aventurero", "color": Color(0.8, 0.8, 0.8, 1.0)})
-
-			var icon_box := Control.new()
-			icon_box.custom_minimum_size = Vector2(32, 32)
-			var icon_int := TextureRect.new()
-			icon_int.texture = icon_set["interior"]
-			icon_int.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-			icon_int.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			icon_int.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icon_int.set_anchors_preset(Control.PRESET_FULL_RECT)
-			var tint: Color = deco_info["color"]
-			if t_id == "pocion":
-				tint.a = 0.85
-			icon_int.self_modulate = tint
-			icon_box.add_child(icon_int)
-
-			var icon_borde := TextureRect.new()
-			icon_borde.texture = icon_set["borde"]
-			icon_borde.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-			icon_borde.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			icon_borde.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icon_borde.set_anchors_preset(Control.PRESET_FULL_RECT)
-			icon_box.add_child(icon_borde)
-
-			var deco_atlas := AtlasTexture.new()
-			deco_atlas.atlas = DECORACIONES_SHEET
-			var cell: Vector2i = deco_info.get("cell", Vector2i(0, 0))
-			deco_atlas.region = Rect2(cell.x * 16, cell.y * 16, 16, 16)
-			var icon_deco := TextureRect.new()
-			icon_deco.texture = deco_atlas
-			icon_deco.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-			icon_deco.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-			icon_deco.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-			icon_deco.size = Vector2(10, 10)
-			icon_deco.position = icon_set.get("deco_pos", Vector2(11.0, 10.0))
-			icon_box.add_child(icon_deco)
-			row.add_child(icon_box)
-
-			var info_vbox := VBoxContainer.new()
-			info_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			info_vbox.add_theme_constant_override("separation", 0)
+			var deco_info: Dictionary = DECO_CLASSES.get(deco, {"label": "Aventurero"})
 
 			var type_name: String = ITEM_TYPE_NAMES.get(t_id, "Objeto")
 			var class_name_str: String = str(deco_info["label"])
@@ -160,7 +100,7 @@ func _show_stolen_items_page() -> void:
 			lbl.add_theme_font_override("font", BOOK_FONT)
 			lbl.add_theme_font_size_override("font_size", 16)
 			lbl.add_theme_color_override("font_color", Color(0.22, 0.14, 0.16, 1.0))
-			info_vbox.add_child(lbl)
+			row.add_child(lbl)
 
 			var actions_row := HBoxContainer.new()
 			actions_row.add_theme_constant_override("separation", 12)
@@ -203,8 +143,7 @@ func _show_stolen_items_page() -> void:
 
 			actions_row.add_child(btn_sell)
 			actions_row.add_child(btn_keep)
-			info_vbox.add_child(actions_row)
-			row.add_child(info_vbox)
+			row.add_child(actions_row)
 			stolen_list.add_child(row)
 
 	_update_stolen_right_summary()
