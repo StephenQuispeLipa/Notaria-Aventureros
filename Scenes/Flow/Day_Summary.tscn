@@ -81,6 +81,19 @@ bbcode_enabled = true
 scroll_active = false
 autowrap_mode = 2
 
+[node name="StolenScroll" type="ScrollContainer" parent="BookPanel/BookPages/LeftPage"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="StolenList" type="VBoxContainer" parent="BookPanel/BookPages/LeftPage/StolenScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
 [node name="RightPage" type="VBoxContainer" parent="BookPanel/BookPages" unique_id=1668070997]
 layout_mode = 2
 size_flags_horizontal = 3
@@ -168,3 +181,58 @@ flat = true
 unique_name_in_owner = true
 stream = ExtResource("4_escritura")
 bus = &"SFX"
+
+[node name="EndStoryOverlay" type="Control" parent="."]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="EndStoryBg" type="ColorRect" parent="EndStoryOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 1)
+
+[node name="EndStoryVBox" type="VBoxContainer" parent="EndStoryOverlay"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 20
+alignment = 1
+
+[node name="EndStoryText" type="RichTextLabel" parent="EndStoryOverlay/EndStoryVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(460, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_colors/default_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_fonts/normal_font = ExtResource("3_mono")
+theme_override_font_sizes/normal_font_size = 24
+bbcode_enabled = true
+text = "[center]FIN DE LA HISTORIA[/center]"
+fit_content = true
+scroll_active = false
+
+[node name="BtnEndContinue" type="Button" parent="EndStoryOverlay/EndStoryVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+focus_mode = 0
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.95, 1)
+theme_override_colors/font_hover_color = Color(1, 0.85, 0.35, 1)
+theme_override_fonts/font = ExtResource("3_mono")
+theme_override_font_sizes/font_size = 20
+text = "CONTINUAR"
+flat = true

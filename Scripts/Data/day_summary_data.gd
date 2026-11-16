@@ -11,45 +11,19 @@ const EXTERNAL_EVENTS: Array[Dictionary] = [
 	{"name": "Robo en casa", "min_cost": 5, "max_cost": 10, "prob": 0.30},
 ]
 
-const DAILY_TIPS: Dictionary = {
-	1: [
-		"[color=#1a386b]DECRETO INAUGURAL:[/color]",
-		"• Usa el Lente Espectral.",
-		"• Sin anomalias: [color=#1e6b2c]COBRAR[/color].",
-		"• Con runas: [color=#8a1c1c]ARRESTAR[/color].",
-		"",
-		"Cada arresto da oro extra.",
-	],
-	2: [
-		"[color=#1a386b]AVISO DE SEGURIDAD:[/color]",
-		"• Ojo al reloj: tiempo 0",
-		"  retiene el [color=#8a1c1c]50% de sueldo[/color].",
-		"• Mueve los objetos en mesa.",
-		"",
-		"No tardes con cada cliente.",
-	],
-	3: [
-		"[color=#1a386b]INFORME FAMILIAR:[/color]",
-		"• Los costos aumentan.",
-		"• Tu familia puede enfermar.",
-		"• Reserva de [color=#1e6b2c]$15-$20[/color].",
-		"• No dejes pasar anomalias.",
-	],
-	4: [
-		"[color=#1a386b]ALERTA DE CARGAS:[/color]",
-		"• Traen hasta 3 objetos.",
-		"• Revisa uno por uno.",
-		"• Una sola runa amerita",
-		"  [color=#8a1c1c]ARRESTO INMEDIATO[/color].",
-		"• Sepáralos en la mesa.",
-	],
-	5: [
-		"[color=#1a386b]AUDITORIA REAL FINAL:[/color]",
-		"• Ultimo dia de inspeccion.",
-		"• Si tu oro llega a $0,",
-		"  vas a prision por deudas.",
-		"• Asegura cada cobro.",
-	],
+const COLOR_NAMES: Array[String] = ["Azul", "Rojo", "Verde", "Morado", "Dorado", "Turquesa", "Magenta", "Gris"]
+
+const CONFISCATE_LABELS: Dictionary = {
+	"libro": "Educación (Libros)",
+	"escudo": "Seguridad (Escudos)",
+	"pocion": "Logística (Botellas)",
+}
+
+const CATEGORY_LABELS: Dictionary = {
+	"sagrados": "Objetos sagrados",
+	"peligrosos": "Objetos peligrosos",
+	"valiosos": "Objetos valiosos",
+	"naturistas": "Objetos naturistas",
 }
 
 const GAME_OVER_TIPS: Array[String] = [
@@ -74,7 +48,7 @@ static func calculate_day_finances(prev_money: int, day: int, arrests: int, time
 	var salary := floori(GameManagerClass.FIXED_DAILY_SALARY / 2.0) if timed_out else GameManagerClass.FIXED_DAILY_SALARY
 	var arrest_rate: int = GameManager.arrest_reward_today if GameManager.arrest_reward_today > 0 else randi_range(4, 7)
 	var arrest_bonus := arrests * arrest_rate
-	var food_cost := randi_range(10, 16)
+	var food_cost := randi_range(14, 20) if day >= 4 else randi_range(10, 16)
 
 	var event_cost := 0
 	var event_lines: Array[String] = []
@@ -135,5 +109,49 @@ static func get_daily_tips(day: int, is_game_over: bool, is_game_win: bool) -> S
 	if is_game_win:
 		return "\n".join(GAME_WIN_TIPS)
 
-	var tips: Array = DAILY_TIPS.get(day, DAILY_TIPS[1])
+	var tips: Array[String] = []
+	match day:
+		1:
+			tips = [
+				"[color=#1a386b]DECRETO PARA MAÑANA (DÍA 2):[/color]",
+				"• La población cayó tras",
+				"  excluir un color.",
+				"• Solo pasan [color=#6b2399]Personas Valiosas[/color]",
+				"  (con algún objeto mágico).",
+				"• Recibirás el Lente Espectral.",
+			]
+		2:
+			var target_label: String = CONFISCATE_LABELS.get(GameManager.day3_confiscate_type, "Educación")
+			tips = [
+				"[color=#1a386b]DECRETO PARA MAÑANA (DÍA 3):[/color]",
+				"• Tras un atentado arcano:",
+				"  [color=#8a1c1c]Objetos mágicos prohibidos[/color].",
+				"• Confisca: [color=#1e6b2c]%s[/color]." % target_label,
+				"• Podrás robar objetos que",
+				"  el rey no reclama...",
+			]
+		3:
+			var cat4: String = CATEGORY_LABELS.get(GameManager.day4_confiscate_category, "Objetos")
+			tips = [
+				"[color=#1a386b]DECRETO PARA MAÑANA (DÍA 4):[/color]",
+				"• El reino cierra sus puertas:",
+				"  [color=#8a1c1c]TODO viajero es arrestado[/color].",
+				"• Confisca: [color=#1e6b2c]%s[/color]." % cat4,
+				"• Vacía la mesa antes de cerrar.",
+			]
+		4:
+			var cat5: String = CATEGORY_LABELS.get(GameManager.day5_prohibited_category, "Objetos")
+			tips = [
+				"[color=#1a386b]DECRETO PARA MAÑANA (DÍA 5):[/color]",
+				"• Hay espías en el reino.",
+				"• Arresta a quienes porten:",
+				"  [color=#8a1c1c]%s[/color]." % cat5,
+				"• Confisca objetos [color=#6b2399]Mágicos[/color].",
+			]
+		_:
+			var c_name: String = COLOR_NAMES[clampi(GameManager.day1_banned_color_index, 0, COLOR_NAMES.size() - 1)]
+			tips = [
+				"[color=#1a386b]DECRETO REAL:[/color]",
+				"• Prohibido vestir de %s." % c_name,
+			]
 	return "\n".join(tips)

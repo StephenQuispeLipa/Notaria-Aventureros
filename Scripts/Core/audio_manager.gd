@@ -25,11 +25,12 @@ func stop_bgm() -> void:
 func set_bgm_volume(volume_linear: float) -> void:
 	bgm_player.volume_db = linear_to_db(clampf(volume_linear, 0.0, 1.0))
 
-func play_sfx(stream: AudioStream) -> void:
+func play_sfx(stream: AudioStream, volume_db: float = 0.0) -> void:
 	if stream == null:
 		return
 	var player := AudioStreamPlayer.new()
 	player.stream = stream
+	player.volume_db = volume_db
 	player.bus = &"SFX"
 	player.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(player)
